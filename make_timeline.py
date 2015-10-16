@@ -32,19 +32,38 @@ def create_timeline(filename):
 	drawing = svgwrite.Drawing('out.svg', profile='tiny', size=(width, height))
 	drawing.add(drawing.line((0, height/2), (width, height/2), stroke="black", stroke_width=3))
 	callouts = data['callouts']
+	# sort callouts
+	sorted_dates = []
+	inv_callouts = {}
 	for event, date_string in callouts.iteritems():
 		event_date = datetime_from_string(cal, date_string)
+		sorted_dates.append(event_date)
+		inv_callouts[event_date] = event
+	sorted_dates.sort()		
+	prev_x = float('-inf')
+	prev_level = 0
+	for event_date in sorted_dates:
+		event = inv_callouts[event_date]
+		#event_date = datetime_from_string(cal, date_string)
 		num_sec = (event_date[0] - start_date[0]).total_seconds()
 		percent_width = num_sec/total_secs
 		if percent_width < 0 or percent_width > 1:
 			continue
 		x = int(percent_width*width + 0.5)
-		callout_size = (25, 50)
+		callout_size = (25, 50, 25)
 		text_fudge = (5, 5)
-		drawing.add(drawing.line((x, height/2), (x, height/2 - callout_size[1]), stroke='black', stroke_width=2))
-		drawing.add(drawing.line((x, height/2 - callout_size[1]), (x - callout_size[0], height/2 - callout_size[1]), stroke='black', stroke_width=2))		
-		drawing.add(drawing.text(event, insert=(x - callout_size[0] - text_fudge[0], height/2 - callout_size[1] + text_fudge[1]), font_family="Helevetica", font_size="10pt", text_anchor="end"))
+		# figure out what "level" to make the callout on
+		left = x - estimate_width(callout_size, event)
+		k = 0
+		if left < prev_x:
+			k = prev_level + 1
+		y = height/2 - callout_size[1] - k*callout_size[2]
+		drawing.add(drawing.line((x, height/2), (x, y), stroke='black', stroke_width=2))
+		drawing.add(drawing.line((x, y), (x - callout_size[0], y), stroke='black', stroke_width=2))		
+		drawing.add(drawing.text(event, insert=(x - callout_size[0] - text_fudge[0], y + text_fudge[1]), font_family="Helevetica", font_size="10pt", text_anchor="end"))
 		drawing.add(drawing.circle((x, height/2), r=5, stroke='black', stroke_width=2, fill='white'))
+		prev_x = x
+		prev_level = k
 	drawing.save()
 
 if __name__ == '__main__':
