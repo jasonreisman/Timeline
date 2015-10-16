@@ -15,8 +15,8 @@ def datetime_from_string(cal, s):
     	dt = datetime.datetime(*dt[:6])
     return dt, flag
 
-def estimate_width(callout_size, text):
-	return callout_size[0] + 10*len(text)
+def estimate_width(callout_size, text_fudge, text):
+	return callout_size[0] + text_fudge[0] + 7.5*len(text)
 
 def create_timeline(filename):
 	s = ''
@@ -40,8 +40,8 @@ def create_timeline(filename):
 		sorted_dates.append(event_date)
 		inv_callouts[event_date] = event
 	sorted_dates.sort()		
-	prev_x = float('-inf')
-	prev_level = 0
+	prev_x = [float('-inf')]
+	prev_level = [-1]
 	for event_date in sorted_dates:
 		event = inv_callouts[event_date]
 		#event_date = datetime_from_string(cal, date_string)
@@ -52,18 +52,24 @@ def create_timeline(filename):
 		x = int(percent_width*width + 0.5)
 		callout_size = (25, 50, 25)
 		text_fudge = (5, 5)
-		# figure out what "level" to make the callout on
-		left = x - estimate_width(callout_size, event)
+		# figure out what "level" to make the callout on 
 		k = 0
-		if left < prev_x:
-			k = prev_level + 1
+		i = len(prev_x) - 1
+		left = x - estimate_width(callout_size, text_fudge, event)
+		#print '>>>>', event
+		while left < prev_x[i] and i >= 0:
+			#print '\t', i, left, prev_x[i], prev_level[i]
+			k = max(k, prev_level[i] + 1)
+			i -= 1
+		#print '\t#', k, left, prev_x[i]
 		y = height/2 - callout_size[1] - k*callout_size[2]
+		drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
 		drawing.add(drawing.line((x, height/2), (x, y), stroke='black', stroke_width=2))
 		drawing.add(drawing.line((x, y), (x - callout_size[0], y), stroke='black', stroke_width=2))		
 		drawing.add(drawing.text(event, insert=(x - callout_size[0] - text_fudge[0], y + text_fudge[1]), font_family="Helevetica", font_size="10pt", text_anchor="end"))
 		drawing.add(drawing.circle((x, height/2), r=5, stroke='black', stroke_width=2, fill='white'))
-		prev_x = x
-		prev_level = k
+		prev_x.append(x)
+		prev_level.append(k)
 	drawing.save()
 
 if __name__ == '__main__':
