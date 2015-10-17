@@ -18,6 +18,14 @@ def datetime_from_string(cal, s):
 def estimate_width(callout_size, text_fudge, text):
 	return callout_size[0] + text_fudge[0] + 7.5*len(text)
 
+def add_tickmark(width, height, drawing, date0, date1, dt, label):
+	px = (dt[0] - date0).total_seconds() / (date1 - date0).total_seconds()
+	x = px*width
+	y = height/2
+	drawing.add(drawing.line((x,y-10), (x,y+10), stroke="black", stroke_width=2))
+	transform = "rotate(180, %i, %i)" % (x, y)
+	drawing.add(drawing.text(label, insert=(x, y-15), font_family="Helevetica", font_size="8pt", text_anchor="end", writing_mode="tb", transform=transform))
+
 def create_timeline(filename):
 	s = ''
 	with open(filename) as f:
@@ -26,11 +34,17 @@ def create_timeline(filename):
 	cal = parsedatetime.Calendar()
 	start_date = datetime_from_string(cal, data['start'])
 	end_date = datetime_from_string(cal, data['end'])
-	total_secs = (end_date[0] - start_date[0]).total_seconds()	
-	width = 800
-	height = 450
-	drawing = svgwrite.Drawing('out.svg', profile='tiny', size=(width, height))
+	delta = end_date[0] - start_date[0]
+	padding = datetime.timedelta(seconds=0.1*delta.total_seconds())
+	date0 = start_date[0] - padding
+	date1 = end_date[0] + padding
+	total_secs = (date1 - date0).total_seconds()	
+	width = data['width']
+	height = data['height']
+	drawing = svgwrite.Drawing('out.svg', size=(width, height))
 	drawing.add(drawing.line((0, height/2), (width, height/2), stroke="black", stroke_width=3))
+	add_tickmark(width, height, drawing, date0, date1, start_date, str(start_date[0]))
+	add_tickmark(width, height, drawing, date0, date1, end_date, str(end_date[0]))
 	callouts = data['callouts']
 	# sort callouts
 	sorted_dates = []
@@ -63,9 +77,9 @@ def create_timeline(filename):
 			i -= 1
 		#print '\t#', k, left, prev_x[i]
 		y = height/2 - callout_size[1] - k*callout_size[2]
-		drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
+		#drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
 		drawing.add(drawing.line((x, height/2), (x, y), stroke='black', stroke_width=2))
-		drawing.add(drawing.line((x, y), (x - callout_size[0], y), stroke='black', stroke_width=2))		
+		drawing.add(drawing.line((x+1, y), (x - callout_size[0], y), stroke='black', stroke_width=2))		
 		drawing.add(drawing.text(event, insert=(x - callout_size[0] - text_fudge[0], y + text_fudge[1]), font_family="Helevetica", font_size="10pt", text_anchor="end"))
 		drawing.add(drawing.circle((x, height/2), r=5, stroke='black', stroke_width=2, fill='white'))
 		prev_x.append(x)
