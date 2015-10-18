@@ -32,6 +32,7 @@ class Timeline:
 		self.text_fudge = (5, 5)
 
 	def build(self):
+		self.create_eras()
 		self.create_main_axis()
 		self.create_callouts()
 
@@ -45,6 +46,25 @@ class Timeline:
 	    else:
 	    	dt = datetime.datetime(*dt[:6])
 	    return dt, flag
+
+	def create_eras(self):
+		gray = "rgb(192, 192, 192)"
+		eras = self.data['eras']
+		for e in eras:
+			name = e[0]
+			t0 = self.datetime_from_string(e[1])
+			t1 = self.datetime_from_string(e[2])
+			percent_width0 = (t0[0] - self.date0).total_seconds()/self.total_secs
+			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
+			x0 = int(percent_width0*self.width + 0.5)
+			x1 = int(percent_width1*self.width + 0.5)			
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.height/2), stroke=gray, stroke_width=1))
+			line0.dasharray([5, 5])
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.height/2), stroke=gray, stroke_width=1))
+			line1.dasharray([5, 5])
+			y = self.height/16
+			self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=gray, stroke_width=1))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=gray, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
 
 	def create_main_axis(self):
 		# draw main line

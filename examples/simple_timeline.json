@@ -1,10 +1,21 @@
 {
-	"start" : "Oct 6 2015 2:35pm",
+	"width" : 900,
+	"height" : 450,
+	"start" : "Oct 8 2015",
 	"end" : "Oct 15 2015",	
+	"num_ticks" : 14,
 	"callouts" : {
-		"Event A" : "Oct 10, 2015",
-		"Special Event B" : "Oct 12, 2015",
-		"Extra Special Event C" : "Oct 13, 2015",
-		"Event E" : "Oct 14, 2015"		
-	}
+		"Midnight Event A" : "12am Oct 10, 2015",
+		"Noon Event A" : "12pm Oct 10, 2015",		
+		"5pm Event A" : "5pm Oct 10, 2015",				
+		"Something amazing happening" : "Oct 11, 2015",
+		"Mega Funky Event B" : "Oct 12, 2015",
+		"C" : "Oct 13, 2015",
+		"Event E ABC" : "Oct 14, 2015"		
+	},
+	"eras" : [
+		["Build", "12am Oct 9, 2015", "12am Oct 12, 2015"],
+		["Stabilize", "12am Oct 12, 2015", "12am Oct 15, 2015"]
+
+	]
 }
