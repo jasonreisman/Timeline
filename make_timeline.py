@@ -49,6 +49,14 @@ class Timeline:
 
 	def create_eras(self):
 		gray = "rgb(192, 192, 192)"
+		# create a marker objects
+		start_marker = self.drawing.marker(insert=(0,4), size=(10,10), orient='auto')
+		start_marker.add(self.drawing.path("M8,0 L8,9 L0,4 L8,0", fill=gray))
+		self.drawing.defs.add(start_marker)
+		end_marker = self.drawing.marker(insert=(8,4), size=(10,10), orient='auto')
+		end_marker.add(self.drawing.path("M0,0 L0,9 L8,4 L0,0", fill=gray))
+		self.drawing.defs.add(end_marker)
+		# add eras
 		eras = self.data['eras']
 		for e in eras:
 			name = e[0]
@@ -63,7 +71,9 @@ class Timeline:
 			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.height/2), stroke=gray, stroke_width=1))
 			line1.dasharray([5, 5])
 			y = self.height/16
-			self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=gray, stroke_width=1))
+			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=gray, stroke_width=1))
+			horz['marker-start'] = start_marker.get_funciri()
+			horz['marker-end'] = end_marker.get_funciri()
 			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=gray, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
 
 	def create_main_axis(self):
