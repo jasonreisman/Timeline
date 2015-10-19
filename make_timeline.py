@@ -33,8 +33,8 @@ class Timeline:
 		self.date1 = self.end_date[0] + padding
 		self.total_secs = (self.date1 - self.date0).total_seconds()	
 		# set up some params
-		self.callout_size = (25, 50, 25) # width, height, increment
-		self.text_fudge = (3, 4)
+		self.callout_size = (25, 15, 10) # width, height, increment
+		self.text_fudge = (3, 3)
 
 	def build(self):
 		self.create_eras()
@@ -79,18 +79,19 @@ class Timeline:
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
 			x0 = int(percent_width0*self.width + 0.5)
 			x1 = int(percent_width1*self.width + 0.5)
-			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, self.height/2)))
+			y = self.height/2
+			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, y)))
 			rect.fill(fill, None, 0.15)	
-			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.height/2), stroke=fill, stroke_width=1))
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, y), stroke=fill, stroke_width=0.5))
 			line0.dasharray([5, 5])
-			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.height/2), stroke=fill, stroke_width=1))
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, y), stroke=fill, stroke_width=0.5))
 			line1.dasharray([5, 5])
 			# create horizontal arrows and text
 			y = self.height/16
-			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=fill, stroke_width=1))
+			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=fill, stroke_width=0.75))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
-			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
 			# # add marks on axis
 			# self.add_axis_label(t0, str(t0[0]), tick=False, fill=Colors.black)
 			# self.add_axis_label(t1, str(t1[0]), tick=False, fill=Colors.black)			
@@ -175,14 +176,14 @@ class Timeline:
 			#drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
 			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, self.height/2, x, y, x - self.callout_size[0], y)
 			self.drawing.add(self.drawing.path(path_data, stroke=event_color, stroke_width=1, fill='none'))
-			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='8pt', text_anchor='end'))
+			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='6pt', text_anchor='end'))
 			self.add_axis_label(event_date, str(event_date[0]), tick=False, fill=Colors.black)
 			self.drawing.add(self.drawing.circle((x, self.height/2), r=5, stroke=event_color, stroke_width=1, fill='white'))
 			prev_x.append(x)
 			prev_level.append(k)
 
 	def estimate_width(self, text):
-		return self.callout_size[0] + self.text_fudge[0] + 7.5*len(text)
+		return self.callout_size[0] + self.text_fudge[0] + 5*len(text)
 
 def usage():
 	print 'Usage: ./make_timeline.py <in filename> > <out filename>'
