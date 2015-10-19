@@ -7,6 +7,9 @@ import datetime
 import json
 import sys
 
+class Colors:
+	gray = '#C0C0C0'
+
 class Timeline:
 	def __init__(self, filename):
 		# load timeline data
@@ -48,14 +51,12 @@ class Timeline:
 	    return dt, flag
 
 	def create_eras(self):
-		black = "#000000"
-		gray = "#C0C0C0"		
 		# create a marker objects
 		start_marker = self.drawing.marker(insert=(0,4), size=(10,10), orient='auto')
-		start_marker.add(self.drawing.path("M8,0 L8,9 L0,4 L8,0", fill=black))
+		start_marker.add(self.drawing.path("M8,0 L8,9 L0,4 L8,0", fill='black'))
 		self.drawing.defs.add(start_marker)
 		end_marker = self.drawing.marker(insert=(8,4), size=(10,10), orient='auto')
-		end_marker.add(self.drawing.path("M0,0 L0,9 L8,4 L0,0", fill=black))
+		end_marker.add(self.drawing.path("M0,0 L0,9 L8,4 L0,0", fill='black'))
 		self.drawing.defs.add(end_marker)
 		# create eras
 		eras_data = self.data['eras']
@@ -64,7 +65,7 @@ class Timeline:
 			name = era[0]
 			t0 = self.datetime_from_string(era[1])
 			t1 = self.datetime_from_string(era[2])
-			fill = era[3] if len(era) > 3 else gray
+			fill = era[3] if len(era) > 3 else Colors.gray
 			# create boundary lines
 			percent_width0 = (t0[0] - self.date0).total_seconds()/self.total_secs
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
@@ -78,18 +79,18 @@ class Timeline:
 			line1.dasharray([5, 5])
 			# create horizontal arrows and text
 			y = self.height/16
-			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=black, stroke_width=1))
+			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke='black', stroke_width=1))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
-			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=black, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill='black', font_family="Helevetica", font_size="8pt", text_anchor="middle"))
 			# add marks on axis
-			self.add_label(t0, str(t0[0]), fill=black)
-			self.add_label(t1, str(t1[0]), fill=black)			
+			self.add_label(t0, str(t0[0]), fill='black')
+			self.add_label(t1, str(t1[0]), fill='black')			
 
 	def create_main_axis(self):
 		# draw main line
 		y = self.height/2
-		self.drawing.add(self.drawing.line((0, y), (self.width, y), stroke="black", stroke_width=3))
+		self.drawing.add(self.drawing.line((0, y), (self.width, y), stroke='black', stroke_width=3))
 		# add tickmarks
 		self.add_tickmark(self.start_date, str(self.start_date[0]))
 		self.add_tickmark(self.end_date, str(self.end_date[0]))
@@ -112,17 +113,17 @@ class Timeline:
 		# add tick on line
 		self.drawing.add(self.drawing.line((x,y-dy), (x,y+dy), stroke='black', stroke_width=2))
 		# add label
-		gray = "rgb(192, 192, 192)"
 		transform = "rotate(180, %i, %i)" % (x, y)
-		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=gray, font_family="Helevetica", font_size="8pt", text_anchor="end", writing_mode="tb", transform=transform))			
+		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=Colors.gray, font_family='Helevetica', font_size='8pt', text_anchor='end', writing_mode='tb', transform=transform))			
 
 	def create_callouts(self):
-		callouts = self.data['callouts']
+		callouts_data = self.data['callouts']
 		# sort callouts
 		sorted_dates = []
 		inv_callouts = {}
-		for event, date_string in callouts.iteritems():
-			event_date = self.datetime_from_string(date_string)
+		for callout in callouts_data:
+			event = callout[0]
+			event_date = self.datetime_from_string(callout[1])
 			sorted_dates.append(event_date)
 			inv_callouts[event_date] = event
 		sorted_dates.sort()		
@@ -136,7 +137,7 @@ class Timeline:
 			if percent_width < 0 or percent_width > 1:
 				continue
 			x = int(percent_width*self.width + 0.5)
-			# figure out what "level" to make the callout on 
+			# figure out what 'level" to make the callout on 
 			k = 0
 			i = len(prev_x) - 1
 			left = x - self.estimate_width(event)
@@ -147,7 +148,7 @@ class Timeline:
 			#drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
 			self.drawing.add(self.drawing.line((x, self.height/2), (x, y), stroke='black', stroke_width=2))
 			self.drawing.add(self.drawing.line((x+1, y), (x - self.callout_size[0], y), stroke='black', stroke_width=2))		
-			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), font_family="Helevetica", font_size="10pt", text_anchor="end"))
+			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), font_family='Helevetica', font_size='10pt', text_anchor='end'))
 			self.add_label(event_date, str(event_date[0]))
 			self.drawing.add(self.drawing.circle((x, self.height/2), r=5, stroke='black', stroke_width=2, fill='white'))
 			prev_x.append(x)
@@ -165,8 +166,8 @@ class Timeline:
 		dy = 5
 		# add label
 		fill = kwargs.get('fill', 'black')
-		transform = "rotate(180, %i, %i)" % (x, y)
-		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=fill, font_family="Helevetica", font_size="8pt", text_anchor="end", writing_mode="tb", transform=transform))			
+		transform = 'rotate(180, %i, %i)' % (x, y)
+		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=fill, font_family='Helevetica', font_size='8pt', text_anchor='end', writing_mode='tb', transform=transform))			
 
 if __name__ == '__main__':
 #	create_timeline(sys.argv[1])
