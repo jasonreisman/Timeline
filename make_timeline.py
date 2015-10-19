@@ -48,33 +48,43 @@ class Timeline:
 	    return dt, flag
 
 	def create_eras(self):
-		gray = "rgb(192, 192, 192)"
+		black = "#000000"
+		gray = "#C0C0C0"		
 		# create a marker objects
 		start_marker = self.drawing.marker(insert=(0,4), size=(10,10), orient='auto')
-		start_marker.add(self.drawing.path("M8,0 L8,9 L0,4 L8,0", fill=gray))
+		start_marker.add(self.drawing.path("M8,0 L8,9 L0,4 L8,0", fill=black))
 		self.drawing.defs.add(start_marker)
 		end_marker = self.drawing.marker(insert=(8,4), size=(10,10), orient='auto')
-		end_marker.add(self.drawing.path("M0,0 L0,9 L8,4 L0,0", fill=gray))
+		end_marker.add(self.drawing.path("M0,0 L0,9 L8,4 L0,0", fill=black))
 		self.drawing.defs.add(end_marker)
-		# add eras
-		eras = self.data['eras']
-		for e in eras:
-			name = e[0]
-			t0 = self.datetime_from_string(e[1])
-			t1 = self.datetime_from_string(e[2])
+		# create eras
+		eras_data = self.data['eras']
+		for era in eras_data:
+			# extract era data
+			name = era[0]
+			t0 = self.datetime_from_string(era[1])
+			t1 = self.datetime_from_string(era[2])
+			fill = era[3] if len(era) > 3 else gray
+			# create boundary lines
 			percent_width0 = (t0[0] - self.date0).total_seconds()/self.total_secs
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
 			x0 = int(percent_width0*self.width + 0.5)
-			x1 = int(percent_width1*self.width + 0.5)			
-			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.height/2), stroke=gray, stroke_width=1))
+			x1 = int(percent_width1*self.width + 0.5)
+			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, self.height/2)))
+			rect.fill(fill, None, 0.15)	
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.height/2), stroke=fill, stroke_width=1))
 			line0.dasharray([5, 5])
-			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.height/2), stroke=gray, stroke_width=1))
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.height/2), stroke=fill, stroke_width=1))
 			line1.dasharray([5, 5])
+			# create horizontal arrows and text
 			y = self.height/16
-			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=gray, stroke_width=1))
+			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=black, stroke_width=1))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
-			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=gray, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=black, font_family="Helevetica", font_size="8pt", text_anchor="middle"))
+			# add marks on axis
+			self.add_label(t0, str(t0[0]), fill=black)
+			self.add_label(t1, str(t1[0]), fill=black)			
 
 	def create_main_axis(self):
 		# draw main line
@@ -146,7 +156,7 @@ class Timeline:
 	def estimate_width(self, text):
 		return self.callout_size[0] + self.text_fudge[0] + 7.5*len(text)
 
-	def add_label(self, dt, label):
+	def add_label(self, dt, label, **kwargs):
 		percent_width = (dt[0] - self.date0).total_seconds()/self.total_secs
 		if percent_width < 0 or percent_width > 1:
 			return
@@ -154,8 +164,9 @@ class Timeline:
 		y = self.height/2
 		dy = 5
 		# add label
+		fill = kwargs.get('fill', 'black')
 		transform = "rotate(180, %i, %i)" % (x, y)
-		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill='black', font_family="Helevetica", font_size="8pt", text_anchor="end", writing_mode="tb", transform=transform))			
+		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=fill, font_family="Helevetica", font_size="8pt", text_anchor="end", writing_mode="tb", transform=transform))			
 
 if __name__ == '__main__':
 #	create_timeline(sys.argv[1])
