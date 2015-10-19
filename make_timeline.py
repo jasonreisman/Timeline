@@ -22,6 +22,7 @@ class Timeline:
 		# create drawing
 		self.width = self.data['width']
 		self.height = self.data['height']
+		self.y_axis = (2.0/3.0)*self.height
 		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, self.height))
 		# figure out timeline boundaries
 		self.cal = parsedatetime.Calendar()
@@ -33,8 +34,8 @@ class Timeline:
 		self.date1 = self.end_date[0] + padding
 		self.total_secs = (self.date1 - self.date0).total_seconds()	
 		# set up some params
-		self.callout_size = (25, 15, 10) # width, height, increment
-		self.text_fudge = (3, 3)
+		self.callout_size = (10, 15, 10) # width, height, increment
+		self.text_fudge = (3, 1.5)
 
 	def build(self):
 		self.create_eras()
@@ -79,7 +80,7 @@ class Timeline:
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
 			x0 = int(percent_width0*self.width + 0.5)
 			x1 = int(percent_width1*self.width + 0.5)
-			y = self.height/2
+			y = self.height
 			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, y)))
 			rect.fill(fill, None, 0.15)	
 			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, y), stroke=fill, stroke_width=0.5))
@@ -98,7 +99,7 @@ class Timeline:
 
 	def create_main_axis(self):
 		# draw main line
-		y = self.height/2
+		y = self.y_axis
 		self.drawing.add(self.drawing.line((0, y), (self.width, y), stroke=Colors.black, stroke_width=3))
 		# add tickmarks
 		self.add_axis_label(self.start_date, str(self.start_date[0]), tick=True)
@@ -129,7 +130,7 @@ class Timeline:
 		if percent_width < 0 or percent_width > 1:
 			return
 		x = int(percent_width*self.width + 0.5)
-		y = self.height/2
+		y = self.y_axis
 		dy = 5
 		# add tick on line
 		add_tick = kwargs.get('tick', True)
@@ -172,18 +173,18 @@ class Timeline:
 			while left < prev_x[i] and i >= 0:
 				k = max(k, prev_level[i] + 1)
 				i -= 1
-			y = self.height/2 - self.callout_size[1] - k*self.callout_size[2]
+			y = self.y_axis - self.callout_size[1] - k*self.callout_size[2]
 			#drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
-			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, self.height/2, x, y, x - self.callout_size[0], y)
+			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, self.y_axis, x, y, x - self.callout_size[0], y)
 			self.drawing.add(self.drawing.path(path_data, stroke=event_color, stroke_width=1, fill='none'))
 			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='6pt', text_anchor='end'))
 			self.add_axis_label(event_date, str(event_date[0]), tick=False, fill=Colors.black)
-			self.drawing.add(self.drawing.circle((x, self.height/2), r=5, stroke=event_color, stroke_width=1, fill='white'))
+			self.drawing.add(self.drawing.circle((x, self.y_axis), r=4, stroke=event_color, stroke_width=1, fill='white'))
 			prev_x.append(x)
 			prev_level.append(k)
 
 	def estimate_width(self, text):
-		return self.callout_size[0] + self.text_fudge[0] + 5*len(text)
+		return self.callout_size[0] + self.text_fudge[0] + 4*len(text)
 
 def usage():
 	print 'Usage: ./make_timeline.py <in filename> > <out filename>'
