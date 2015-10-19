@@ -1,5 +1,9 @@
 # Timeline
-A utility for creating SVG timelines from JSON.  You will be able to create timelines that look like this:
+A utility for creating SVG timelines from JSON.  
+
+## Example
+
+You will be able to create timelines that look like this:
 
 ![alt tag](http://jasonreisman.github.io/timeline/simple_timeline.png)
 
