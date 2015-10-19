@@ -6,16 +6,16 @@
 	"num_ticks" : 14,
 	"callouts" : [
 		["ABC easy as 123", "Oct 14, 2015 3pm"],		
-		["Midnight Event A", "12am Oct 10, 2015"],
+		["Midnight Event A", "12am Oct 10, 2015", "#00DD00"],
 		["Noon Event A", "12pm Oct 10, 2015"],		
 		["5pm Event A", "5pm Oct 10, 2015"],				
 		["Something amazing happening", "Oct 11, 2015"],
-		["Mega Funky Event B", "Oct 12, 2015"],
+		["Mega Funky Event B", "Oct 12, 2015", "#DD0000"],
 		["C", "Oct 13, 2015"],
 		["Event E", "Oct 14, 2015"]
 	],
 	"eras" : [
-		["Build", "12am Oct 9, 2015", "3am Oct 12, 2015", "#C0FFC0"],
+		["Build", "12pm Oct 8, 2015", "3am Oct 12, 2015", "#CD853F"],
 		["Stabilize", "8am Oct 12, 2015", "12am Oct 15, 2015", "#C0C0FF"]
 
 	]
