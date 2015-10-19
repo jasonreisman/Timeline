@@ -1,7 +1,7 @@
 # Timeline
 A utility for creating SVG timelines from JSON.  
 
-## Example
+### Example
 
 You will be able to create timelines that look like this:
 
@@ -36,8 +36,8 @@ from JSON that looks like this:
 }
 ```
 
-## Prerequisites
+### Prerequisites
 You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
 
-## Usage
+### Usage
 ```./make_timeline.py <input jason filename> > <output svg filename>```
