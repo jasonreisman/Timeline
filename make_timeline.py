@@ -20,9 +20,10 @@ class Timeline:
 			s = f.read()
 		self.data = json.loads(s)
 		# create drawing
+		assert 'width' in self.data, 'width property must be set'
 		self.width = self.data['width']
-		self.height = self.data['height']
-		self.y_axis = (2.0/3.0)*self.height
+		self.height = self.data.get('height', 250)
+		self.y_axis = self.data.get('y_axis', (2.0/3.0)*self.height)
 		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, self.height))
 		# figure out timeline boundaries
 		self.cal = parsedatetime.Calendar()
@@ -36,6 +37,7 @@ class Timeline:
 		# set up some params
 		self.callout_size = (10, 15, 10) # width, height, increment
 		self.text_fudge = (3, 1.5)
+		self.tick_format = self.data.get('tick_format', None)
 
 	def build(self):
 		self.create_eras()
@@ -83,19 +85,16 @@ class Timeline:
 			y = self.height
 			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, y)))
 			rect.fill(fill, None, 0.15)	
-			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, y), stroke=fill, stroke_width=0.5))
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.y_axis), stroke=fill, stroke_width=0.5))
 			line0.dasharray([5, 5])
-			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, y), stroke=fill, stroke_width=0.5))
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.y_axis), stroke=fill, stroke_width=0.5))
 			line1.dasharray([5, 5])
 			# create horizontal arrows and text
-			y = self.height/16
+			y = self.data.get('y_era', 10)
 			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=fill, stroke_width=0.75))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
 			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
-			# # add marks on axis
-			# self.add_axis_label(t0, str(t0[0]), tick=False, fill=Colors.black)
-			# self.add_axis_label(t1, str(t1[0]), tick=False, fill=Colors.black)			
 
 	def create_main_axis(self):
 		# draw main line
@@ -126,6 +125,8 @@ class Timeline:
 			self.add_axis_label(t1, str(t1[0]), tick=False, fill=Colors.black)			
 
 	def add_axis_label(self, dt, label, **kwargs):
+		if self.tick_format:
+			label = dt[0].strftime(self.tick_format)
 		percent_width = (dt[0] - self.date0).total_seconds()/self.total_secs
 		if percent_width < 0 or percent_width > 1:
 			return
