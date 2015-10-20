@@ -7,6 +7,8 @@ import datetime
 import json
 import os.path
 import sys
+import tkFont
+import Tkinter
 
 class Colors:
 	black = '#000000'
@@ -39,6 +41,9 @@ class Timeline:
 		self.text_fudge = (3, 1.5)
 		self.tick_format = self.data.get('tick_format', None)
 		self.markers = {}
+		# initialize Tk so that font metrics will work
+		self.tk_root = Tkinter.Tk()
+		self.fonts = {}
 
 	def build(self):
 		self.create_eras()
@@ -184,12 +189,12 @@ class Timeline:
 			# figure out what 'level" to make the callout on 
 			k = 0
 			i = len(prev_x) - 1
-			left = x - self.estimate_width(event)
+			left = x - self.estimate_width('Helevetica', 6, event)
 			while left < prev_x[i] and i >= 0:
 				k = max(k, prev_level[i] + 1)
 				i -= 1
 			y = self.y_axis - self.callout_size[1] - k*self.callout_size[2]
-			#drawing.add(drawing.circle((left, y), stroke='red', stroke_width=2))		
+			#self.drawing.add(self.drawing.circle((left, y), stroke='red', stroke_width=2))		
 			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, self.y_axis, x, y, x - self.callout_size[0], y)
 			self.drawing.add(self.drawing.path(path_data, stroke=event_color, stroke_width=1, fill='none'))
 			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='6pt', text_anchor='end'))
@@ -198,8 +203,17 @@ class Timeline:
 			prev_x.append(x)
 			prev_level.append(k)
 
-	def estimate_width(self, text):
-		return self.callout_size[0] + self.text_fudge[0] + 4*len(text)
+	def estimate_width(self, family, size, text):
+		font = None	
+		key = (family, size)
+		if key in self.fonts:
+			font = self.fonts[key]
+		else:
+			font = tkFont.Font(family=family, size=size)
+			self.fonts[key] = font
+		assert font is not None
+		(w,h) = (font.measure(text),font.metrics("linespace"))
+		return self.callout_size[0] + self.text_fudge[0] + w
 
 def usage():
 	print 'Usage: ./make_timeline.py <in filename> > <out filename>'
