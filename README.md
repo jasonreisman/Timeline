@@ -40,4 +40,4 @@ from JSON that looks like this:
 You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
 
 ### Usage
-```./make_timeline.py <input jason filename> > <output svg filename>```
+```./make_timeline.py <input json filename> > <output svg filename>```
