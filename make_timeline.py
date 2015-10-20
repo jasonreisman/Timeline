@@ -38,6 +38,7 @@ class Timeline:
 		self.callout_size = (10, 15, 10) # width, height, increment
 		self.text_fudge = (3, 1.5)
 		self.tick_format = self.data.get('tick_format', None)
+		self.markers = {}
 
 	def build(self):
 		self.create_eras()
@@ -64,19 +65,17 @@ class Timeline:
 			return
 		# create eras
 		eras_data = self.data['eras']
+		markers = {}
 		for era in eras_data:
 			# extract era data
 			name = era[0]
 			t0 = self.datetime_from_string(era[1])
 			t1 = self.datetime_from_string(era[2])
 			fill = era[3] if len(era) > 3 else Colors.gray
-			# create a marker objects
-			start_marker = self.drawing.marker(insert=(0,3), size=(10,10), orient='auto')
-			start_marker.add(self.drawing.path("M6,0 L6,7 L0,3 L6,0", fill=fill))
-			self.drawing.defs.add(start_marker)
-			end_marker = self.drawing.marker(insert=(6,3), size=(10,10), orient='auto')
-			end_marker.add(self.drawing.path("M0,0 L0,7 L6,3 L0,0", fill=fill))
-			self.drawing.defs.add(end_marker)
+			# get marker objects
+			start_marker, end_marker = self.get_markers(fill)
+			assert start_marker is not None
+			assert end_marker is not None
 			# create boundary lines
 			percent_width0 = (t0[0] - self.date0).total_seconds()/self.total_secs
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
@@ -95,6 +94,21 @@ class Timeline:
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
 			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
+
+	def get_markers(self, color):
+		# create or get marker objects
+		start_marker, end_marker = None, None
+		if color in self.markers:
+			start_marker, end_marker = self.markers[color]
+		else:
+			start_marker = self.drawing.marker(insert=(0,3), size=(10,10), orient='auto')
+			start_marker.add(self.drawing.path("M6,0 L6,7 L0,3 L6,0", fill=color))
+			self.drawing.defs.add(start_marker)
+			end_marker = self.drawing.marker(insert=(6,3), size=(10,10), orient='auto')
+			end_marker.add(self.drawing.path("M0,0 L0,7 L6,3 L0,0", fill=color))
+			self.drawing.defs.add(end_marker)	
+			self.markers[color] = (start_marker, end_marker)
+		return start_marker, end_marker
 
 	def create_main_axis(self):
 		# draw main line
