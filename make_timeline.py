@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python
 
 import parsedatetime
 import svgwrite
@@ -174,13 +174,15 @@ class Timeline:
 			event_date = self.datetime_from_string(callout[1])
 			event_color = callout[2] if len(callout) > 2 else Colors.black
 			sorted_dates.append(event_date)
-			inv_callouts[event_date] = (event, event_color)
+			if event_date not in inv_callouts:
+				inv_callouts[event_date] = []
+			inv_callouts[event_date].append((event, event_color))
 		sorted_dates.sort()		
 		# add callouts, one by one, making sure they don't overlap
 		prev_x = [float('-inf')]
 		prev_level = [-1]
 		for event_date in sorted_dates:
-			event, event_color = inv_callouts[event_date]
+			event, event_color = inv_callouts[event_date].pop()
 			num_sec = (event_date[0] - self.date0).total_seconds()
 			percent_width = num_sec/self.total_secs
 			if percent_width < 0 or percent_width > 1:
