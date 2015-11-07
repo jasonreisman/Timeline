@@ -24,7 +24,6 @@ class Timeline:
 		# create drawing
 		assert 'width' in self.data, 'width property must be set'
 		self.width = self.data['width']
-		self.y_era = 10
 		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, 0))
 		self.g_axis = self.drawing.g()		
 		# figure out timeline boundaries
@@ -47,16 +46,19 @@ class Timeline:
 		self.max_label_height = 0
 
 	def build(self):
+		# MAGIC NUMBER: y_era
+		# draw era label and markers at this height
+		y_era = 10
 		# create main axis and callouts, 
 		# keeping track of how high the callouts are
 		self.create_main_axis()
 		y_callouts = self.create_callouts()
-		# determine axis position so that it doesn't overlap with eras
-		y_axis = self.y_era + self.callout_size[1] - y_callouts
-		# determine height so that eras, callouts, and axis labels just fit
+		# determine axis position so that axis + callouts don't overlap with eras
+		y_axis = y_era + self.callout_size[1] - y_callouts
+		# determine height so that eras, callouts, axis, and labels just fit
 		height = y_axis + self.max_label_height + 4*self.text_fudge[1]
 		# create eras and labels using axis height and overall height
-		self.create_eras(self.y_era, y_axis, height)
+		self.create_eras(y_era, y_axis, height)
 		self.create_era_axis_labels()
 		# translate the axis group and add it to the drawing
 		self.g_axis.translate(0, y_axis)
