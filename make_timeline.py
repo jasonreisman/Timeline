@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 import parsedatetime
 import svgwrite
@@ -51,10 +51,10 @@ class Timeline:
 		y_callouts = self.create_callouts()
 		y_axis = self.y_era + self.callout_size[1] - y_callouts
 		height = y_axis + self.max_label_height + 4*self.text_fudge[1]
-		self.g_axis.translate(0, y_axis)
-		self.drawing.add(self.g_axis)
 		self.create_eras(self.y_era, y_axis, height)
 		self.create_era_axis_labels()
+		self.g_axis.translate(0, y_axis)
+		self.drawing.add(self.g_axis)
 		self.drawing['height'] = height
 
 	def save(self, filename):
