@@ -33,8 +33,32 @@ from JSON that looks like this:
 }
 ```
 
+### Data Format
+The input file is a JSON document that describes the start and end points of the timeline, tickmarks along the main axis, as well as callouts to specifc dates/times, and eras which visually mark areas along the axis.  Many of the fields are dates, which can be described in several common date formats (e.g., "3/14/15", "Nov 11, 2011", etc.) and may optionally also include a time of day (e.g. "3/14/15 9:26am").  (Date/time parsing is handled by the Python package [`parsedatetime`](https://pypi.python.org/pypi/parsedatetime/), which parses many formats.)
+
+#### Required Fields
+
+The only required fields are `width`, `start`, and `end`.  All other fields are optional.  
+
+* `width` describes the width, in pixels, of the output SVG document
+* `start` is the date/time of the leftmost date/time on the axis
+* `end` is the date/time of the rightmost date/time on the axis
+
+#### Optional Fields
+
+* `num_ticks` contols the number of ticks (inclusive) along the axis between the `start` and `end` date/times
+* `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior)
+
+#### Callouts
+
+Callouts along the axis are described in the `callouts` list.  Each entry in the callouts list is itself a list with either two or three values, all of which are strings.  The first two values are required, while the third is optional.  The first value is the text description of the callout (e.g., "Pi Day"), and the second value is the date/time of the callout (e.g., "3/14/15 9:26am").  The optional third value can specify a color for the callout, either a color hexcode starting with a # or a SVG color alias.
+
+#### Eras
+
+Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Pi Day"), while the second and third values are the start and end date/times of the era, respectively (e.g., "3/14/15 12am", and "3/14/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias. 
+
 ### Prerequisites
 You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
 
 ### Usage
-```./make_timeline.py <input json filename> > <output svg filename>```
+```./make_timeline.py in.json > out.svg```
