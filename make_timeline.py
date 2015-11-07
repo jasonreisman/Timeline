@@ -24,10 +24,8 @@ class Timeline:
 		# create drawing
 		assert 'width' in self.data, 'width property must be set'
 		self.width = self.data['width']
-		self.height = float('NaN')
-		self.y_axis = float('NaN')
 		self.y_era = 10
-		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, self.height))
+		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, 0))
 		self.g_axis = self.drawing.g()		
 		# figure out timeline boundaries
 		self.cal = parsedatetime.Calendar()
@@ -51,13 +49,13 @@ class Timeline:
 	def build(self):
 		self.create_main_axis()
 		y_callouts = self.create_callouts()
-		self.y_axis = 10 + self.callout_size[1] - y_callouts
-		self.height = self.y_axis + self.max_label_height + 4*self.text_fudge[1]
-		self.g_axis.translate(0, self.y_axis)
+		y_axis = self.y_era + self.callout_size[1] - y_callouts
+		height = y_axis + self.max_label_height + 4*self.text_fudge[1]
+		self.g_axis.translate(0, y_axis)
 		self.drawing.add(self.g_axis)
-		self.create_eras()
+		self.create_eras(self.y_era, y_axis, height)
 		self.create_era_axis_labels()
-		self.drawing['height'] = self.height
+		self.drawing['height'] = height
 
 	def save(self, filename):
 		self.drawing.saveas(filename)
@@ -73,7 +71,7 @@ class Timeline:
 	    	dt = datetime.datetime(*dt[:6])
 	    return dt, flag
 
-	def create_eras(self):
+	def create_eras(self, y_era, y_axis, height):
 		if 'eras' not in self.data:
 			return
 		# create eras
@@ -94,19 +92,17 @@ class Timeline:
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
 			x0 = int(percent_width0*self.width + 0.5)
 			x1 = int(percent_width1*self.width + 0.5)
-			y = self.height
-			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, y)))
+			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, height)))
 			rect.fill(fill, None, 0.15)	
-			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.y_axis), stroke=fill, stroke_width=0.5))
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, y_axis), stroke=fill, stroke_width=0.5))
 			line0.dasharray([5, 5])
-			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.y_axis), stroke=fill, stroke_width=0.5))
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, y_axis), stroke=fill, stroke_width=0.5))
 			line1.dasharray([5, 5])
 			# create horizontal arrows and text
-			y = self.y_era
-			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=fill, stroke_width=0.75))
+			horz = self.drawing.add(self.drawing.line((x0, y_era), (x1, y_era), stroke=fill, stroke_width=0.75))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
-			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y_era - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
 
 	def get_markers(self, color):
 		# create or get marker objects
@@ -125,7 +121,6 @@ class Timeline:
 
 	def create_main_axis(self):
 		# draw main line
-		y = self.y_axis
 		self.g_axis.add(self.drawing.line((0, 0), (self.width, 0), stroke=Colors.black, stroke_width=3))
 		# add tickmarks
 		self.add_axis_label(self.start_date, str(self.start_date[0]), tick=True)
@@ -158,13 +153,12 @@ class Timeline:
 		if percent_width < 0 or percent_width > 1:
 			return
 		x = int(percent_width*self.width + 0.5)
-		y = self.y_axis
 		dy = 5
 		# add tick on line
 		add_tick = kwargs.get('tick', True)
 		if add_tick:
 			stroke = kwargs.get('stroke', Colors.black)
-			self.g_axis.add(self.drawing.line((x,-dy), (x,+dy), stroke=stroke, stroke_width=2))
+			self.g_axis.add(self.drawing.line((x,-dy), (x,dy), stroke=stroke, stroke_width=2))
 		# add label
 		fill = kwargs.get('fill', Colors.gray)
 		transform = "rotate(180, %i, 0)" % (x)
