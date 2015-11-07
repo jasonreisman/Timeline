@@ -47,14 +47,21 @@ class Timeline:
 		self.max_label_height = 0
 
 	def build(self):
+		# create main axis and callouts, 
+		# keeping track of how high the callouts are
 		self.create_main_axis()
 		y_callouts = self.create_callouts()
+		# determine axis position so that it doesn't overlap with eras
 		y_axis = self.y_era + self.callout_size[1] - y_callouts
+		# determine height so that eras, callouts, and axis labels just fit
 		height = y_axis + self.max_label_height + 4*self.text_fudge[1]
+		# create eras and labels using axis height and overall height
 		self.create_eras(self.y_era, y_axis, height)
 		self.create_era_axis_labels()
+		# translate the axis group and add it to the drawing
 		self.g_axis.translate(0, y_axis)
 		self.drawing.add(self.g_axis)
+		# finally set the height on the drawing
 		self.drawing['height'] = height
 
 	def save(self, filename):
