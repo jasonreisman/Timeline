@@ -1,12 +1,9 @@
 {
 	"width" : 750,
-	"height" : 170,
-	"y_axis" : 75,
-	"y_era" : 10,
-	"tick_format" : "%b %d, %Y - %I:%M%p",
 	"start" : "Oct 8 2015",
 	"end" : "Oct 15 2015",	
 	"num_ticks" : 14,
+	"tick_format" : "%b %d, %Y - %I:%M%p",
 	"callouts" : [
 		["ABC easy as 123", "Oct 14, 2015 3pm"],		
 		["Midnight Event A", "12am Oct 10, 2015", "#DD0000"],
