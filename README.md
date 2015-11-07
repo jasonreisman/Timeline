@@ -53,9 +53,26 @@ The only required fields are `width`, `start`, and `end`.  All other fields are 
 
 Callouts along the axis are described in the `callouts` list.  Each entry in the callouts list is itself a list with either two or three values, all of which are strings.  The first two values are required, while the third is optional.  The first value is the text description of the callout (e.g., "Pi Day"), and the second value is the date/time of the callout (e.g., "3/14/15 9:26am").  The optional third value can specify a color for the callout, either a color hexcode starting with a # or a SVG color alias.
 
+Example:
+```JSON
+["Ultimate Pi Day", "3/14/15 9:26am"]
+```
+or, with a custom callout color:
+```JSON
+["Ultimate Pi Day", "3/14/15 9:26am", "#CD3F85"]
+```
 #### Eras
 
-Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Pi Day"), while the second and third values are the start and end date/times of the era, respectively (e.g., "3/14/15 12am", and "3/14/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias. 
+Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Summer"), while the second and third values are the start and end date/times of the era, respectively (e.g., "6/21/15 12am", and "9/20/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias. 
+
+Example:
+```JSON
+["Summer 2015", "6/21/15 12am", "9/20/15 11:59pm"]
+```
+or, with a custom era color:
+```JSON
+["Summer 2015", "6/21/15 12am", "9/20/15 11:59pm", "Orange"]
+```
 
 ### Prerequisites
 You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
