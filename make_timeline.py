@@ -24,9 +24,9 @@ class Timeline:
 		# create drawing
 		assert 'width' in self.data, 'width property must be set'
 		self.width = self.data['width']
-		self.height = self.data.get('height', 250)
-		self.y_axis = self.data.get('y_axis', (2.0/3.0)*self.height)
-		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, self.height))
+		self.y_era = 10
+		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, 0))
+		self.g_axis = self.drawing.g()		
 		# figure out timeline boundaries
 		self.cal = parsedatetime.Calendar()
 		self.start_date = self.datetime_from_string(self.data['start'])
@@ -44,12 +44,18 @@ class Timeline:
 		# initialize Tk so that font metrics will work
 		self.tk_root = Tkinter.Tk()
 		self.fonts = {}
+		self.max_label_height = 0
 
 	def build(self):
-		self.create_eras()
 		self.create_main_axis()
+		y_callouts = self.create_callouts()
+		y_axis = self.y_era + self.callout_size[1] - y_callouts
+		height = y_axis + self.max_label_height + 4*self.text_fudge[1]
+		self.g_axis.translate(0, y_axis)
+		self.drawing.add(self.g_axis)
+		self.create_eras(self.y_era, y_axis, height)
 		self.create_era_axis_labels()
-		self.create_callouts()
+		self.drawing['height'] = height
 
 	def save(self, filename):
 		self.drawing.saveas(filename)
@@ -65,7 +71,7 @@ class Timeline:
 	    	dt = datetime.datetime(*dt[:6])
 	    return dt, flag
 
-	def create_eras(self):
+	def create_eras(self, y_era, y_axis, height):
 		if 'eras' not in self.data:
 			return
 		# create eras
@@ -86,19 +92,17 @@ class Timeline:
 			percent_width1 = (t1[0] - self.date0).total_seconds()/self.total_secs
 			x0 = int(percent_width0*self.width + 0.5)
 			x1 = int(percent_width1*self.width + 0.5)
-			y = self.height
-			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, y)))
+			rect = self.drawing.add(self.drawing.rect((x0, 0), (x1-x0, height)))
 			rect.fill(fill, None, 0.15)	
-			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, self.y_axis), stroke=fill, stroke_width=0.5))
+			line0 = self.drawing.add(self.drawing.line((x0,0), (x0, y_axis), stroke=fill, stroke_width=0.5))
 			line0.dasharray([5, 5])
-			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, self.y_axis), stroke=fill, stroke_width=0.5))
+			line1 = self.drawing.add(self.drawing.line((x1,0), (x1, y_axis), stroke=fill, stroke_width=0.5))
 			line1.dasharray([5, 5])
 			# create horizontal arrows and text
-			y = self.data.get('y_era', 10)
-			horz = self.drawing.add(self.drawing.line((x0,y), (x1, y), stroke=fill, stroke_width=0.75))
+			horz = self.drawing.add(self.drawing.line((x0, y_era), (x1, y_era), stroke=fill, stroke_width=0.75))
 			horz['marker-start'] = start_marker.get_funciri()
 			horz['marker-end'] = end_marker.get_funciri()
-			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
+			self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y_era - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
 
 	def get_markers(self, color):
 		# create or get marker objects
@@ -117,8 +121,7 @@ class Timeline:
 
 	def create_main_axis(self):
 		# draw main line
-		y = self.y_axis
-		self.drawing.add(self.drawing.line((0, y), (self.width, y), stroke=Colors.black, stroke_width=3))
+		self.g_axis.add(self.drawing.line((0, 0), (self.width, 0), stroke=Colors.black, stroke_width=3))
 		# add tickmarks
 		self.add_axis_label(self.start_date, str(self.start_date[0]), tick=True)
 		self.add_axis_label(self.end_date, str(self.end_date[0]), tick=True)
@@ -150,19 +153,21 @@ class Timeline:
 		if percent_width < 0 or percent_width > 1:
 			return
 		x = int(percent_width*self.width + 0.5)
-		y = self.y_axis
 		dy = 5
 		# add tick on line
 		add_tick = kwargs.get('tick', True)
 		if add_tick:
 			stroke = kwargs.get('stroke', Colors.black)
-			self.drawing.add(self.drawing.line((x,y-dy), (x,y+dy), stroke=stroke, stroke_width=2))
+			self.g_axis.add(self.drawing.line((x,-dy), (x,dy), stroke=stroke, stroke_width=2))
 		# add label
 		fill = kwargs.get('fill', Colors.gray)
-		transform = "rotate(180, %i, %i)" % (x, y)
-		self.drawing.add(self.drawing.text(label, insert=(x, y-2*dy), stroke='none', fill=fill, font_family='Helevetica', font_size='6pt', text_anchor='end', writing_mode='tb', transform=transform))			
+		transform = "rotate(180, %i, 0)" % (x)
+		self.g_axis.add(self.drawing.text(label, insert=(x, -2*dy), stroke='none', fill=fill, font_family='Helevetica', font_size='6pt', text_anchor='end', writing_mode='tb', transform=transform))			
+		h = self.get_text_metrics('Helevetica', 6, label)[0] + 2*dy
+		self.max_label_height = max(self.max_label_height, h)
 
 	def create_callouts(self):
+		min_y = float('inf')
 		if 'callouts' not in self.data:
 			return
 		callouts_data = self.data['callouts']
@@ -191,21 +196,23 @@ class Timeline:
 			# figure out what 'level" to make the callout on 
 			k = 0
 			i = len(prev_x) - 1
-			left = x - self.estimate_width('Helevetica', 6, event)
+			left = x - (self.get_text_metrics('Helevetica', 6, event)[0] + self.callout_size[0] + self.text_fudge[0])
 			while left < prev_x[i] and i >= 0:
 				k = max(k, prev_level[i] + 1)
 				i -= 1
-			y = self.y_axis - self.callout_size[1] - k*self.callout_size[2]
+			y = 0 - self.callout_size[1] - k*self.callout_size[2]
+			min_y = min(min_y, y)
 			#self.drawing.add(self.drawing.circle((left, y), stroke='red', stroke_width=2))		
-			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, self.y_axis, x, y, x - self.callout_size[0], y)
-			self.drawing.add(self.drawing.path(path_data, stroke=event_color, stroke_width=1, fill='none'))
-			self.drawing.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='6pt', text_anchor='end'))
+			path_data = 'M%i,%i L%i,%i L%i,%i' % (x, 0, x, y, x - self.callout_size[0], y)
+			self.g_axis.add(self.drawing.path(path_data, stroke=event_color, stroke_width=1, fill='none'))
+			self.g_axis.add(self.drawing.text(event, insert=(x - self.callout_size[0] - self.text_fudge[0], y + self.text_fudge[1]), stroke='none', fill=event_color, font_family='Helevetica', font_size='6pt', text_anchor='end'))
 			self.add_axis_label(event_date, str(event_date[0]), tick=False, fill=Colors.black)
-			self.drawing.add(self.drawing.circle((x, self.y_axis), r=4, stroke=event_color, stroke_width=1, fill='white'))
+			self.g_axis.add(self.drawing.circle((x, 0), r=4, stroke=event_color, stroke_width=1, fill='white'))
 			prev_x.append(x)
 			prev_level.append(k)
+		return min_y
 
-	def estimate_width(self, family, size, text):
+	def get_text_metrics(self, family, size, text):
 		font = None	
 		key = (family, size)
 		if key in self.fonts:
@@ -215,7 +222,7 @@ class Timeline:
 			self.fonts[key] = font
 		assert font is not None
 		(w,h) = (font.measure(text),font.metrics("linespace"))
-		return self.callout_size[0] + self.text_fudge[0] + w
+		return w, h
 
 def usage():
 	print 'Usage: ./make_timeline.py <in filename> > <out filename>'
