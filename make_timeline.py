@@ -21,10 +21,13 @@ class Timeline:
 		with open(filename) as f:
 			s = f.read()
 		self.data = json.loads(s)
-		# create drawing
 		assert 'width' in self.data, 'width property must be set'
+		assert 'start' in self.data, 'start property must be set'
+		assert 'end' in self.data, 'end property must be set'
+		# create drawing
 		self.width = self.data['width']
-		self.drawing = svgwrite.Drawing('out.svg', size=(self.width, 0))
+		self.drawing = svgwrite.Drawing()
+		self.drawing['width'] = self.width
 		self.g_axis = self.drawing.g()		
 		# figure out timeline boundaries
 		self.cal = parsedatetime.Calendar()
@@ -43,6 +46,8 @@ class Timeline:
 		# initialize Tk so that font metrics will work
 		self.tk_root = Tkinter.Tk()
 		self.fonts = {}
+		# max_label_height stores the max height of all axis labels
+		# and is used in the final height computation in build(self)
 		self.max_label_height = 0
 
 	def build(self):
@@ -74,7 +79,7 @@ class Timeline:
 
 	def datetime_from_string(self, s):
 	    dt, flag = self.cal.parse(s)
-	    if flag in (1,2):
+	    if flag in (1, 2):
 	        dt = datetime.datetime(*dt[:6])
 	    else:
 	    	dt = datetime.datetime(*dt[:6])
@@ -230,7 +235,7 @@ class Timeline:
 			font = tkFont.Font(family=family, size=size)
 			self.fonts[key] = font
 		assert font is not None
-		(w,h) = (font.measure(text),font.metrics("linespace"))
+		w, h = (font.measure(text), font.metrics("linespace"))
 		return w, h
 
 def usage():
