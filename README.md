@@ -46,7 +46,7 @@ The only required fields are `width`, `start`, and `end`.  All other fields are 
 
 #### Optional Fields
 
-* `num_ticks` contols the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for tickmarks at the `start` and `end` dates.
+* `num_ticks` contols the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for those at the `start` and `end` dates.
 * `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).
 
 #### Callouts
