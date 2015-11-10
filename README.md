@@ -40,13 +40,13 @@ The input file is a JSON document that describes the start and end points of the
 
 The only required fields are `width`, `start`, and `end`.  All other fields are optional.  
 
-* `width` describes the width, in pixels, of the output SVG document.  *The height will be determined automatically.*
+* `width` describes the width, in pixels, of the output SVG document.  The height will be determined automatically.
 * `start` is the date/time of the leftmost date/time on the axis.
 * `end` is the date/time of the rightmost date/time on the axis.
 
 #### Optional Fields
 
-* `num_ticks` contols the number of ticks along the axis between the `start` and `end` date/times (inclusive).
+* `num_ticks` contols the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for tickmarks at the `start` and `end` dates.
 * `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).
 
 #### Callouts
