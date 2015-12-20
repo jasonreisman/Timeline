@@ -239,7 +239,7 @@ class Timeline:
 		return w, h
 
 def usage():
-	print 'Usage: ./make_timeline.py in.json > out.json'
+	print 'Usage: ./make_timeline.py in.json > out.svg'
 	sys.exit(-1)
 
 if __name__ == '__main__':
