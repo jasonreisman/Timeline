@@ -252,4 +252,4 @@ if __name__ == '__main__':
 		sys.exit(-1)
 	timeline = Timeline(filename)
 	timeline.build()
-	print timeline.to_string()
+	print timeline.to_string().encode('utf-8')
