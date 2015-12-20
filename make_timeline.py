@@ -239,7 +239,7 @@ class Timeline:
 		return w, h
 
 def usage():
-	print 'Usage: ./make_timeline.py <in filename> > <out filename>'
+	print 'Usage: ./make_timeline.py in.json > out.json'
 	sys.exit(-1)
 
 if __name__ == '__main__':
@@ -250,6 +250,6 @@ if __name__ == '__main__':
 	if not os.path.isfile(filename):
 		print 'file %s not found' % filename
 		sys.exit(-1)
-	timeline = Timeline(sys.argv[1])
+	timeline = Timeline(filename)
 	timeline.build()
 	print timeline.to_string()
