@@ -1,5 +1,19 @@
 # Timeline
-A tool for creating SVG timelines from JSON.  
+A tool for creating SVG timelines from JSON.
+
+### Requirements
+
+Standard pythons need to additionally install these two packages:
+
+* parsedatetime
+* svgwrite
+
+via `pip install`.
+
+If you're running python3 on Ubuntu you might also need to install tk:
+
+sudo apt-get install python3-tk
+
 
 ### Example
 
@@ -13,14 +27,14 @@ from JSON that looks like this:
 {
 	"width" : 750,
 	"start" : "Oct 8 2015",
-	"end" : "Oct 15 2015",	
+	"end" : "Oct 15 2015",
 	"num_ticks" : 14,
 	"tick_format" : "%b %d, %Y - %I:%M%p",
 	"callouts" : [
-		["ABC easy as 123", "Oct 14, 2015 3pm"],		
+		["ABC easy as 123", "Oct 14, 2015 3pm"],
 		["Midnight Event A", "12am Oct 10, 2015", "#DD0000"],
-		["Noon Event A", "12pm Oct 10, 2015"],		
-		["5pm Event A", "5pm Oct 10, 2015"],				
+		["Noon Event A", "12pm Oct 10, 2015"],
+		["5pm Event A", "5pm Oct 10, 2015"],
 		["Something amazing happening", "Oct 11, 2015"],
 		["Awesome Event B", "Oct 12, 2015", "#DD0000"],
 		["C", "Oct 13, 2015"],
@@ -38,7 +52,7 @@ The input file is a JSON document that describes the start and end points of the
 
 #### Required Fields
 
-The only required fields are `width`, `start`, and `end`.  All other fields are optional.  
+The only required fields are `width`, `start`, and `end`.  All other fields are optional.
 
 * `width` describes the width, in pixels, of the output SVG document.  The height will be determined automatically.
 * `start` is the date/time of the leftmost date/time on the axis.
@@ -63,7 +77,7 @@ or, with a custom callout color:
 ```
 #### Eras
 
-Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Summer"), while the second and third values are the start and end date/times of the era, respectively (e.g., "6/21/15 12am", and "9/20/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias. 
+Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Summer"), while the second and third values are the start and end date/times of the era, respectively (e.g., "6/21/15 12am", and "9/20/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias.
 
 Example:
 ```JSON
