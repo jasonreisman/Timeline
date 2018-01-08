@@ -235,7 +235,7 @@ class Timeline:
 
     def add_axis_label(self, dt, label, **kwargs):
         if self.tick_format:
-            label = dt.strftime(self.tick_format)
+            label = self.get_strftime(dt, self.tick_format)
         percent_width = (dt - self.date0).total_seconds() \
             / self.total_secs
         if percent_width < 0 or percent_width > 1:
