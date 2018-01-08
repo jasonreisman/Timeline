@@ -51,10 +51,10 @@ class Timeline:
         self.cal = parsedatetime.Calendar()
         self.start_date = self.datetime_from_string(self.data['start'])
         self.end_date = self.datetime_from_string(self.data['end'])
-        delta = self.end_date[0] - self.start_date[0]
+        delta = self.end_date - self.start_date
         padding = datetime.timedelta(seconds=0.1 * delta.total_seconds())
-        self.date0 = self.start_date[0] - padding
-        self.date1 = self.end_date[0] + padding
+        self.date0 = self.start_date - padding
+        self.date1 = self.end_date + padding
         self.total_secs = (self.date1 - self.date0).total_seconds()
 
         # set up some params
@@ -108,11 +108,7 @@ class Timeline:
 
     def datetime_from_string(self, s):
         (dt, flag) = self.cal.parse(s)
-        if flag in (1, 2):
-            dt = datetime.datetime(*dt[:6])
-        else:
-            dt = datetime.datetime(*dt[:6])
-        return (dt, flag)
+        return datetime.datetime(*dt[:6])
 
     def create_eras(self, y_era, y_axis, height):
         if 'eras' not in self.data:
@@ -135,9 +131,10 @@ class Timeline:
             assert end_marker is not None
 
             # create boundary lines
-            percent_width0 = (t0[0] - self.date0).total_seconds() \
+
+            percent_width0 = (t0 - self.date0).total_seconds() \
                 / self.total_secs
-            percent_width1 = (t1[0] - self.date0).total_seconds() \
+            percent_width1 = (t1 - self.date0).total_seconds() \
                 / self.total_secs
             x0 = int(percent_width0 * self.width + 0.5)
             x1 = int(percent_width1 * self.width + 0.5)
@@ -194,18 +191,18 @@ class Timeline:
                         stroke=Colors.black, stroke_width=3))
 
         # add tickmarks
-        self.add_axis_label(self.start_date, str(self.start_date[0]),
-                            tick=True)
-        self.add_axis_label(self.end_date, str(self.end_date[0]),
-                            tick=True)
+
+        self.add_axis_label(self.start_date, str(self.start_date), tick=True)
+        self.add_axis_label(self.end_date, str(self.end_date), tick=True)
+
         if 'num_ticks' in self.data:
-            delta = self.end_date[0] - self.start_date[0]
+            delta = self.end_date - self.start_date
             secs = delta.total_seconds()
             num_ticks = self.data['num_ticks']
             for j in range(1, num_ticks):
                 tick_delta = datetime.timedelta(seconds=j * secs / num_ticks)
-                tickmark_date = self.start_date[0] + tick_delta
-                self.add_axis_label([tickmark_date],
+                tickmark_date = self.start_date + tick_delta
+                self.add_axis_label(tickmark_date,
                                     str(tickmark_date), tick=True)
 
     def create_era_axis_labels(self):
@@ -219,13 +216,14 @@ class Timeline:
             t1 = self.datetime_from_string(era[2])
 
             # add marks on axis
-            self.add_axis_label(t0, str(t0[0]), tick=False, fill=Colors.black)
-            self.add_axis_label(t1, str(t1[0]), tick=False, fill=Colors.black)
+
+            self.add_axis_label(t0, str(t0), tick=False, fill=Colors.black)
+            self.add_axis_label(t1, str(t1), tick=False, fill=Colors.black)
 
     def add_axis_label(self, dt, label, **kwargs):
         if self.tick_format:
-            label = dt[0].strftime(self.tick_format)
-        percent_width = (dt[0] - self.date0).total_seconds() \
+            label = dt.strftime(self.tick_format)
+        percent_width = (dt - self.date0).total_seconds() \
             / self.total_secs
         if percent_width < 0 or percent_width > 1:
             return
@@ -280,13 +278,14 @@ class Timeline:
         prev_level = [-1]
         for event_date in sorted_dates:
             (event, event_color) = inv_callouts[event_date].pop()
-            num_sec = (event_date[0] - self.date0).total_seconds()
+            num_sec = (event_date - self.date0).total_seconds()
             percent_width = num_sec / self.total_secs
             if percent_width < 0 or percent_width > 1:
                 continue
             x = int(percent_width * self.width + 0.5)
 
-            # figure out what 'level" to make the callout on
+            # figure out what 'level' to make the callout on
+
             k = 0
             i = len(prev_x) - 1
             left = x - (self.get_text_metrics('Helevetica', 6,
@@ -318,7 +317,7 @@ class Timeline:
                 font_size='6pt',
                 text_anchor='end',
                 ))
-            self.add_axis_label(event_date, str(event_date[0]),
+            self.add_axis_label(event_date, str(event_date),
                                 tick=False, fill=Colors.black)
             self.g_axis.add(self.drawing.circle((x, 0), r=4,
                             stroke=event_color, stroke_width=1,
