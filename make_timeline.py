@@ -124,8 +124,6 @@ class Timeline:
             line1.dasharray([5, 5])
             # create horizontal arrows and text
             horz = self.drawing.add(self.drawing.line((x0, y_era), (x1, y_era), stroke=fill, stroke_width=0.75))
-            horz['marker-start'] = start_marker.get_funciri()
-            horz['marker-end'] = end_marker.get_funciri()
             self.drawing.add(self.drawing.text(name, insert=(0.5*(x0 + x1), y_era - self.text_fudge[1]), stroke='none', fill=fill, font_family="Helevetica", font_size="6pt", text_anchor="middle"))
 
     def get_markers(self, color):
@@ -193,7 +191,7 @@ class Timeline:
     def create_callouts(self):
         min_y = float('inf')
         if 'callouts' not in self.data:
-            return
+            return 0
         callouts_data = self.data['callouts']
         # sort callouts
         sorted_dates = []
