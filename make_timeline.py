@@ -110,6 +110,19 @@ class Timeline:
         (dt, flag) = self.cal.parse(s)
         return datetime.datetime(*dt[:6])
 
+    def get_strftime(self, ts, fmt):
+        # < 1900 Solution found at:
+        # https://stackoverflow.com/questions/1526170/formatting-date-string-in-python-for-dates-prior-to-1900
+        if ts.year < 1900:
+            d = {'%Y': '{0.year}', '%m': '{0.month:02}', '%d': '{0.day:02}',
+                 '%H': '{0.hour:02}', '%S': '{0.second:02}', '%M': '{0.minute:02}',
+                 '%YY': '{0.year:04}'}
+            for s, r in sorted(d.items(), reverse=True):
+                fmt = fmt.replace(s, r)
+            return fmt.format(ts)
+        else:
+            return ts.strftime(fmt)
+
     def create_eras(self, y_era, y_axis, height):
         if 'eras' not in self.data:
             return
