@@ -49,6 +49,7 @@ class Timeline:
 
         # figure out timeline boundaries
         self.cal = parsedatetime.Calendar()
+        self.date_parsing_format = self.data.get('date_parsing_format', None)
         self.start_date = self.datetime_from_string(self.data['start'])
         self.end_date = self.datetime_from_string(self.data['end'])
         delta = self.end_date - self.start_date
@@ -107,6 +108,9 @@ class Timeline:
         return self.drawing.tostring()
 
     def datetime_from_string(self, s):
+        if self.date_parsing_format is not None:
+            return datetime.datetime.strptime(s, self.date_parsing_format)
+
         (dt, flag) = self.cal.parse(s)
         return datetime.datetime(*dt[:6])
 
@@ -235,7 +239,7 @@ class Timeline:
 
     def add_axis_label(self, dt, label, **kwargs):
         if self.tick_format:
-            label = dt.strftime(self.tick_format)
+            label = self.get_strftime(dt, self.tick_format)
         percent_width = (dt - self.date0).total_seconds() \
             / self.total_secs
         if percent_width < 0 or percent_width > 1:
