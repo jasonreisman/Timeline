@@ -28,6 +28,42 @@ class Colors:
     gray = '#C0C0C0'
 
 
+class Leveler():
+
+    def __init__(self, width=10, height=15, increment=10, spacing_x=3):
+
+        # static
+        self.width = width
+        self.height = height
+        self.increment = increment
+        self.spacing_x = spacing_x
+
+        # dynamic
+        self.x_positions = [float('-inf')]
+        self.previous_levels = [-1]
+
+        # storage
+        self.min_y = float('inf')
+
+    def __call__(self, x, text_width):
+
+        level = 0
+        i = len(self.x_positions) - 1
+        left = x - (text_width + self.width + self.spacing_x)
+
+        while left < self.x_positions[i] and i >= 0:
+            level = max(level, self.previous_levels[i] + 1)
+            i -= 1
+
+        y = 0 - self.height - level * self.increment
+
+        self.min_y = min(self.min_y, y)
+        self.previous_levels.append(level)
+        self.x_positions.append(x)
+
+        return x, y
+
+
 class Timeline:
 
     def __init__(self, filename):
@@ -148,7 +184,6 @@ class Timeline:
             assert end_marker is not None
 
             # create boundary lines
-
             percent_width0 = (t0 - self.date0).total_seconds() \
                 / self.total_secs
             percent_width1 = (t1 - self.date0).total_seconds() \
@@ -290,9 +325,9 @@ class Timeline:
             inv_callouts[event_date].append((event, event_color))
         sorted_dates.sort()
 
+        get_level = Leveler(*self.callout_size, spacing_x=self.text_fudge[0])
+
         # add callouts, one by one, making sure they don't overlap
-        prev_x = [float('-inf')]
-        prev_level = [-1]
         for event_date in sorted_dates:
             (event, event_color) = inv_callouts[event_date].pop()
             num_sec = (event_date - self.date0).total_seconds()
@@ -300,27 +335,17 @@ class Timeline:
             if percent_width < 0 or percent_width > 1:
                 continue
             x = int(percent_width * self.width + 0.5)
+            text_width = self.get_text_metrics('Helevetica', 6, event)[0]
 
             # figure out what 'level' to make the callout on
+            (x, y) = get_level(x, text_width)
 
-            k = 0
-            i = len(prev_x) - 1
-            left = x - (self.get_text_metrics('Helevetica', 6,
-                        event)[0] + self.callout_size[0] + self.text_fudge[0])
-            while left < prev_x[i] and i >= 0:
-                k = max(k, prev_level[i] + 1)
-                i -= 1
-            y = 0 - self.callout_size[1] - k * self.callout_size[2]
-            min_y = min(min_y, y)
-
-            path_data = 'M%i,%i L%i,%i L%i,%i' % (
-                x,
-                0,
-                x,
-                y,
-                x - self.callout_size[0],
-                y,
+            path_data = 'M{x},0 L{x},{y} L{start},{y}'.format(
+                x=int(x),
+                y=int(y),
+                start=int(x - self.callout_size[0])
                 )
+
             self.g_axis.add(self.drawing.path(path_data,
                             stroke=event_color, stroke_width=1,
                             fill='none'))
@@ -339,9 +364,8 @@ class Timeline:
             self.g_axis.add(self.drawing.circle((x, 0), r=4,
                             stroke=event_color, stroke_width=1,
                             fill='white'))
-            prev_x.append(x)
-            prev_level.append(k)
-        return min_y
+
+        return get_level.min_y
 
     def get_text_metrics(self, family, size, text):
         font = None
