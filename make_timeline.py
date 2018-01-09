@@ -272,14 +272,20 @@ class Timeline:
             self.add_axis_label(t0, str(t0), tick=False, fill=Colors.black)
             self.add_axis_label(t1, str(t1), tick=False, fill=Colors.black)
 
+    def get_starting_postion(self, dt):
+        percent_width = (dt - self.date0).total_seconds() / self.total_secs
+        if percent_width < 0 or percent_width > 1:
+            return -1
+        return int(percent_width * self.width + 0.5)
+
     def add_axis_label(self, dt, label, **kwargs):
         if self.tick_format:
             label = self.get_strftime(dt, self.tick_format)
-        percent_width = (dt - self.date0).total_seconds() \
-            / self.total_secs
-        if percent_width < 0 or percent_width > 1:
+
+        x = self.get_starting_postion(dt)
+        if x < 0:
             return
-        x = int(percent_width * self.width + 0.5)
+
         dy = 5
 
         # add tick on line
@@ -291,7 +297,16 @@ class Timeline:
 
         # add label
         fill = kwargs.get('fill', Colors.gray)
-        transform = 'rotate(180, %i, 0)' % x
+
+        writing_mode = self.data.get('tick_orientation', 'tb')
+
+        if writing_mode == 'tb':
+            transform = 'rotate(180, %i, 0)' % x
+        else:
+            dy = -6
+            width = self.get_text_metrics('Helevetica', 6, label)[0]
+            transform = 'translate(%i, 0)' % int(width / 2)
+
         self.g_axis.add(self.drawing.text(
             label,
             insert=(x, -2 * dy),
@@ -300,7 +315,7 @@ class Timeline:
             font_family='Helevetica',
             font_size='6pt',
             text_anchor='end',
-            writing_mode='tb',
+            writing_mode=writing_mode,
             transform=transform,
             ))
         h = self.get_text_metrics('Helevetica', 6, label)[0] + 2 * dy
@@ -330,12 +345,11 @@ class Timeline:
         # add callouts, one by one, making sure they don't overlap
         for event_date in sorted_dates:
             (event, event_color) = inv_callouts[event_date].pop()
-            num_sec = (event_date - self.date0).total_seconds()
-            percent_width = num_sec / self.total_secs
-            if percent_width < 0 or percent_width > 1:
-                continue
-            x = int(percent_width * self.width + 0.5)
             text_width = self.get_text_metrics('Helevetica', 6, event)[0]
+
+            x = self.get_starting_postion(event_date)
+            if x < 0:
+                continue
 
             # figure out what 'level' to make the callout on
             (x, y) = get_level(x, text_width)
