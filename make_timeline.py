@@ -49,6 +49,7 @@ class Timeline:
 
         # figure out timeline boundaries
         self.cal = parsedatetime.Calendar()
+        self.date_parsing_format = self.data.get('date_parsing_format', None)
         self.start_date = self.datetime_from_string(self.data['start'])
         self.end_date = self.datetime_from_string(self.data['end'])
         delta = self.end_date - self.start_date
@@ -107,6 +108,9 @@ class Timeline:
         return self.drawing.tostring()
 
     def datetime_from_string(self, s):
+        if self.date_parsing_format is not None:
+            return datetime.datetime.strptime(s, self.date_parsing_format)
+
         (dt, flag) = self.cal.parse(s)
         return datetime.datetime(*dt[:6])
 
