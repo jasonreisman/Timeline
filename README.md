@@ -30,6 +30,7 @@ from JSON that looks like this:
 	"end" : "Oct 15 2015",
 	"num_ticks" : 14,
 	"tick_format" : "%b %d, %Y - %I:%M%p",
+	"tick_orientation": "tb",
 	"date_parsing_format" : "%b %d, %Y %I%p",
 	"callouts" : [
 		["ABC easy as 123", "Oct 14, 2015 3pm"],
@@ -63,6 +64,7 @@ The only required fields are `width`, `start`, and `end`.  All other fields are 
 
 * `num_ticks` controls the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for those at the `start` and `end` dates.
 * `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior). Warning: Dates before 1900 can only use: %m, %M, %H, %d, %Y, %S and %YY (year with leading 0).
+* `tick_orientation` controls the orientation of the tick labels. `tb`: top to bottom, `lr`: left to right
 * `date_parsing_format` defines the date format of callouts and eras.
 
 #### Callouts

@@ -43,7 +43,7 @@ class Leveler():
         self.previous_levels = [-1]
 
         # storage
-        self.min_y = float('inf')
+        self.min_y = 0
 
     def __call__(self, x, text_width):
 
@@ -61,7 +61,7 @@ class Leveler():
         self.previous_levels.append(level)
         self.x_positions.append(x)
 
-        return x, y
+        return x, y, level
 
 
 class Timeline:
@@ -81,7 +81,11 @@ class Timeline:
         self.width = self.data['width']
         self.drawing = svgwrite.Drawing()
         self.drawing['width'] = self.width
-        self.g_axis = self.drawing.g()
+        self.svg_groups = {'callouts': self.drawing.g(),
+                           'main_axis': self.drawing.g(),
+                           'eras': self.drawing.g(),
+                           'tick_labels': self.drawing.g(),
+                           }
 
         # figure out timeline boundaries
         self.cal = parsedatetime.Calendar()
@@ -99,6 +103,7 @@ class Timeline:
         self.text_fudge = (3, 1.5)
         self.tick_format = self.data.get('tick_format', None)
         self.markers = {}
+        self.ticks = {}
 
         # initialize Tk so that font metrics will work
         self.tk_root = Tkinter.Tk()
@@ -107,6 +112,10 @@ class Timeline:
         # max_label_height stores the max height of all axis labels
         # and is used in the final height computation in build(self)
         self.max_label_height = 0
+
+        # leveler for ticks
+        self.tick_leveler = Leveler(0, self.callout_size[1],
+            self.callout_size[2], self.text_fudge[0])
 
     def build(self):
 
@@ -124,15 +133,24 @@ class Timeline:
         y_axis = y_era + self.callout_size[1] - y_callouts
 
         # determine height so that eras, callouts, axis, and labels just fit
-        height = y_axis + self.max_label_height + 4 * self.text_fudge[1]
+        height = y_axis + 4 * self.text_fudge[1]
 
         # create eras and labels using axis height and overall height
         self.create_eras(y_era, y_axis, height)
         self.create_era_axis_labels()
 
+        self.draw_axis_labels()
+
         # translate the axis group and add it to the drawing
-        self.g_axis.translate(0, y_axis)
-        self.drawing.add(self.g_axis)
+        global_group = self.drawing.g()
+        global_group.add(self.svg_groups['tick_labels'])
+        global_group.add(self.svg_groups['main_axis'])
+        global_group.add(self.svg_groups['callouts'])
+        global_group.translate(0, y_axis)
+
+        # eras are not translated -> not in global group
+        self.drawing.add(self.svg_groups['eras'])
+        self.drawing.add(global_group)
 
         # finally set the height on the drawing
         self.drawing['height'] = height
@@ -190,23 +208,23 @@ class Timeline:
                 / self.total_secs
             x0 = int(percent_width0 * self.width + 0.5)
             x1 = int(percent_width1 * self.width + 0.5)
-            rect = self.drawing.add(self.drawing.rect((x0, 0), (x1 - x0,
+            rect = self.svg_groups['eras'].add(self.drawing.rect((x0, 0), (x1 - x0,
                                                                 height)))
             rect.fill(fill, None, 0.15)
-            line0 = self.drawing.add(self.drawing.line((x0, 0), (x0, y_axis),
+            line0 = self.svg_groups['eras'].add(self.drawing.line((x0, 0), (x0, y_axis),
                                                        stroke=fill,
                                                        stroke_width=0.5))
-            line0.dasharray([5, 5])
-            line1 = self.drawing.add(self.drawing.line((x1, 0), (x1, y_axis),
+            line1 = self.svg_groups['eras'].add(self.drawing.line((x1, 0), (x1, y_axis),
                                                        stroke=fill,
                                                        stroke_width=0.5))
             line1.dasharray([5, 5])
+            line0.dasharray([5, 5])
 
             # create horizontal arrows and text
-            self.drawing.add(self.drawing.line((x0, y_era), (x1, y_era),
+            self.svg_groups['eras'].add(self.drawing.line((x0, y_era), (x1, y_era),
                                                stroke=fill,
                                                stroke_width=0.75))
-            self.drawing.add(self.drawing.text(
+            self.svg_groups['eras'].add(self.drawing.text(
                 name,
                 insert=(0.5 * (x0 + x1), y_era - self.text_fudge[1]),
                 stroke='none',
@@ -239,8 +257,9 @@ class Timeline:
     def create_main_axis(self):
 
         # draw main line
-        self.g_axis.add(self.drawing.line((0, 0), (self.width, 0),
-                        stroke=Colors.black, stroke_width=3))
+        self.svg_groups['main_axis'].add(self.drawing.line((0, 0),
+                                         (self.width, 0),
+                                         stroke=Colors.black, stroke_width=3))
 
         # add tickmarks
 
@@ -292,34 +311,59 @@ class Timeline:
         add_tick = kwargs.get('tick', True)
         if add_tick:
             stroke = kwargs.get('stroke', Colors.black)
-            self.g_axis.add(self.drawing.line((x, -dy), (x, dy),
-                            stroke=stroke, stroke_width=2))
+            self.svg_groups['main_axis'].add(self.drawing.line((x, -dy),
+                                                               (x, dy),
+                                             stroke=stroke, stroke_width=2))
 
         # add label
         fill = kwargs.get('fill', Colors.gray)
 
+        self.ticks[(label, x)] = fill
+
+    def draw_axis_labels(self):
+        min_y = 0
         writing_mode = self.data.get('tick_orientation', 'tb')
 
-        if writing_mode == 'tb':
-            transform = 'rotate(180, %i, 0)' % x
-        else:
-            dy = -6
-            width = self.get_text_metrics('Helevetica', 6, label)[0]
-            transform = 'translate(%i, 0)' % int(width / 2)
+        ticks = [list(tup) + [fill] for tup, fill in self.ticks.items()]
+        sorted_ticks = sorted(ticks, key=lambda tup: tup[1])
 
-        self.g_axis.add(self.drawing.text(
-            label,
-            insert=(x, -2 * dy),
-            stroke='none',
-            fill=fill,
-            font_family='Helevetica',
-            font_size='6pt',
-            text_anchor='end',
-            writing_mode=writing_mode,
-            transform=transform,
-            ))
-        h = self.get_text_metrics('Helevetica', 6, label)[0] + 2 * dy
-        self.max_label_height = max(self.max_label_height, h)
+        for tick in sorted_ticks:
+            (label, x, fill) = tick
+            text_width, text_height = self.get_text_metrics('Helevetica', 6,
+                                                            label)
+
+            if writing_mode == 'tb':
+                transform = 'rotate(180, %i, 0)' % x
+                y = 10
+            else:
+                transform = 'translate(%i, 0)' % int(text_width / 2)
+                (x, y, level) = self.tick_leveler(x, text_width)
+
+            self.svg_groups['tick_labels'].add(self.drawing.text(
+                label,
+                insert=(x, -y),
+                stroke='none',
+                fill=fill,
+                font_family='Helevetica',
+                font_size='6pt',
+                text_anchor='end',
+                writing_mode=writing_mode,
+                transform=transform,
+                ))
+
+            if level > 0:
+                line = self.drawing.line((x, 0),
+                                         (x, -y - text_height),
+                                         stroke=fill,
+                                         stroke_width=0.75)
+                tick = self.svg_groups['tick_labels'].add(line)
+                tick.dasharray([3, 3])
+
+            h = text_width + y
+            self.max_label_height = max(self.max_label_height, h, y)
+
+        return
+
 
     def create_callouts(self):
         min_y = float('inf')
@@ -352,7 +396,7 @@ class Timeline:
                 continue
 
             # figure out what 'level' to make the callout on
-            (x, y) = get_level(x, text_width)
+            (x, y, _) = get_level(x, text_width)
 
             path_data = 'M{x},0 L{x},{y} L{start},{y}'.format(
                 x=int(x),
@@ -360,10 +404,11 @@ class Timeline:
                 start=int(x - self.callout_size[0])
                 )
 
-            self.g_axis.add(self.drawing.path(path_data,
-                            stroke=event_color, stroke_width=1,
-                            fill='none'))
-            self.g_axis.add(self.drawing.text(
+            self.svg_groups['callouts'].add(self.drawing.path(path_data,
+                                            stroke=event_color,
+                                            stroke_width=1,
+                                            fill='none'))
+            self.svg_groups['callouts'].add(self.drawing.text(
                 event,
                 insert=(x - self.callout_size[0] - self.text_fudge[0],
                         y + self.text_fudge[1]),
@@ -375,7 +420,7 @@ class Timeline:
                 ))
             self.add_axis_label(event_date, str(event_date),
                                 tick=False, fill=Colors.black)
-            self.g_axis.add(self.drawing.circle((x, 0), r=4,
+            self.svg_groups['callouts'].add(self.drawing.circle((x, 0), r=4,
                             stroke=event_color, stroke_width=1,
                             fill='white'))
 
