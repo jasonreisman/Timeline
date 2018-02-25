@@ -109,10 +109,6 @@ class Timeline:
         self.tk_root = Tkinter.Tk()
         self.fonts = {}
 
-        # max_label_height stores the max height of all axis labels
-        # and is used in the final height computation in build(self)
-        self.max_label_height = 0
-
         # leveler for ticks
         self.tick_leveler = Leveler(0, self.callout_size[1],
             self.callout_size[2], self.text_fudge[0])
@@ -196,11 +192,6 @@ class Timeline:
             t1 = self.datetime_from_string(era[2])
             fill = (era[3] if len(era) > 3 else Colors.gray)
 
-            # get marker objects
-            (start_marker, end_marker) = self.get_markers(fill)
-            assert start_marker is not None
-            assert end_marker is not None
-
             # create boundary lines
             percent_width0 = (t0 - self.date0).total_seconds() \
                 / self.total_secs
@@ -234,26 +225,6 @@ class Timeline:
                 text_anchor='middle',
                 ))
 
-    def get_markers(self, color):
-
-        # create or get marker objects
-        (start_marker, end_marker) = (None, None)
-        if color in self.markers:
-            (start_marker, end_marker) = self.markers[color]
-        else:
-            start_marker = self.drawing.marker(insert=(0, 3), size=(10, 10),
-                                               orient='auto')
-            start_marker.add(self.drawing.path('M6,0 L6,7 L0,3 L6,0',
-                             fill=color))
-            self.drawing.defs.add(start_marker)
-            end_marker = self.drawing.marker(insert=(6, 3), size=(10, 10),
-                                             orient='auto')
-            end_marker.add(self.drawing.path('M0,0 L0,7 L6,3 L0,0',
-                           fill=color))
-            self.drawing.defs.add(end_marker)
-            self.markers[color] = (start_marker, end_marker)
-        return (start_marker, end_marker)
-
     def create_main_axis(self):
 
         # draw main line
@@ -262,7 +233,6 @@ class Timeline:
                                          stroke=Colors.black, stroke_width=3))
 
         # add tickmarks
-
         self.add_axis_label(self.start_date, str(self.start_date), tick=True)
         self.add_axis_label(self.end_date, str(self.end_date), tick=True)
 
@@ -360,7 +330,6 @@ class Timeline:
                 tick.dasharray([3, 3])
 
             h = text_width + y
-            self.max_label_height = max(self.max_label_height, h, y)
 
         return
 
