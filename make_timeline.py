@@ -292,6 +292,7 @@ class Timeline:
 
     def draw_axis_labels(self):
         min_y = 0
+        level = 0
         writing_mode = self.data.get('tick_orientation', 'tb')
 
         ticks = [list(tup) + [fill] for tup, fill in self.ticks.items()]
