@@ -12,8 +12,7 @@ via `pip install`.
 
 If you're running python3 on Ubuntu you might also need to install tk:
 
-sudo apt-get install python3-tk
-
+`sudo apt-get install python3-tk`
 
 ### Example
 
@@ -91,9 +90,6 @@ or, with a custom era color:
 ```JSON
 ["Summer 2015", "6/21/15 12am", "9/20/15 11:59pm", "Orange"]
 ```
-
-### Prerequisites
-You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
 
 ### Usage
 ```./make_timeline.py in.json > out.svg```
