@@ -220,7 +220,7 @@ class Timeline:
                 insert=(0.5 * (x0 + x1), y_era - self.text_fudge[1]),
                 stroke='none',
                 fill=fill,
-                font_family='Helevetica',
+                font_family='Helvetica',
                 font_size='6pt',
                 text_anchor='middle',
                 ))
@@ -300,7 +300,7 @@ class Timeline:
 
         for tick in sorted_ticks:
             (label, x, fill) = tick
-            text_width, text_height = self.get_text_metrics('Helevetica', 6,
+            text_width, text_height = self.get_text_metrics('Helvetica', 6,
                                                             label)
 
             if writing_mode == 'tb':
@@ -315,7 +315,7 @@ class Timeline:
                 insert=(x, -y),
                 stroke='none',
                 fill=fill,
-                font_family='Helevetica',
+                font_family='Helvetica',
                 font_size='6pt',
                 text_anchor='end',
                 writing_mode=writing_mode,
@@ -359,7 +359,7 @@ class Timeline:
         # add callouts, one by one, making sure they don't overlap
         for event_date in sorted_dates:
             (event, event_color) = inv_callouts[event_date].pop()
-            text_width = self.get_text_metrics('Helevetica', 6, event)[0]
+            text_width = self.get_text_metrics('Helvetica', 6, event)[0]
 
             x = self.get_starting_postion(event_date)
             if x < 0:
@@ -384,7 +384,7 @@ class Timeline:
                         y + self.text_fudge[1]),
                 stroke='none',
                 fill=event_color,
-                font_family='Helevetica',
+                font_family='Helvetica',
                 font_size='6pt',
                 text_anchor='end',
                 ))
