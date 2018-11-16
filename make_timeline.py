@@ -9,7 +9,7 @@ import json
 import os.path
 import sys
 
-if sys.version_info[0]==3:
+if sys.version_info[0] == 3:
     # for Python3
     import tkinter as Tkinter
     import tkinter.font as tkFont
