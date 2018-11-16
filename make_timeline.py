@@ -422,6 +422,8 @@ if __name__ == '__main__':
     if not os.path.isfile(filename):
         print('file %s not found' % filename)
         sys.exit(-1)
+    if os.environ.get('DISPLAY','') == '':
+        os.environ['DISPLAY'] = ':0'
     timeline = Timeline(filename)
     timeline.build()
     print(timeline.to_string().encode('utf-8'))
