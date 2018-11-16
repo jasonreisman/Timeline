@@ -9,18 +9,15 @@ import json
 import os.path
 import sys
 
-try:
-    # for Python2
-    import Tkinter
-except ImportError:
+if sys.version_info[0] == 3:
     # for Python3
     import tkinter as Tkinter
-
-try:
-    import tkFont
-except ImportError:
     import tkinter.font as tkFont
-
+    from tkinter import _tkinter
+else:
+    # for Python2
+    import Tkinter
+    import tkFont
 
 class Colors:
 
@@ -106,7 +103,12 @@ class Timeline:
         self.ticks = {}
 
         # initialize Tk so that font metrics will work
-        self.tk_root = Tkinter.Tk()
+        self.use_tkinter = True
+        try:
+            self.tk_root = Tkinter.Tk()
+        except _tkinter.TclError:
+            print('_tkinter.TclError is raised')
+            self.use_tkinter = False
         self.fonts = {}
 
         # leveler for ticks
@@ -397,6 +399,9 @@ class Timeline:
         return get_level.min_y
 
     def get_text_metrics(self, family, size, text):
+        if not self.use_tkinter:
+            # NOTE: change it not to use hard-coded value
+            return (len(text)*10, 10)
         font = None
         key = (family, size)
         if key in self.fonts:
@@ -407,7 +412,6 @@ class Timeline:
         assert font is not None
         (w, h) = (font.measure(text), font.metrics('linespace'))
         return (w, h)
-
 
 def usage():
     print('Usage: ./make_timeline.py in.json > out.svg')
