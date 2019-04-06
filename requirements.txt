@@ -1,0 +1,4 @@
+future==0.17.1
+parsedatetime==2.4
+pyparsing==2.3.1
+svgwrite==1.2.1
