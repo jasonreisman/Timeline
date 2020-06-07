@@ -55,6 +55,8 @@ class Leveler():
         y = 0 - self.height - level * self.increment
 
         self.min_y = min(self.min_y, y)
+        print >>sys.stderr,"min y=",self.min_y
+
         self.previous_levels.append(level)
         self.x_positions.append(x)
 
@@ -81,8 +83,18 @@ class Timeline:
         self.svg_groups = {'callouts': self.drawing.g(),
                            'main_axis': self.drawing.g(),
                            'eras': self.drawing.g(),
+                           'suberas': self.drawing.g(),
+                           'subsuberas': self.drawing.g(),
+                           'subsubsuberas': self.drawing.g(),
                            'tick_labels': self.drawing.g(),
                            }
+        self.maxsuberas=0
+        for nsub in range(1,6):
+            if nsub*'sub'+'eras' in self.data:
+                if nsub*'sub'+'eras' not in self.svg_groups:
+                    self.svg_groups[nsub*'sub'+'eras'] = self.drawing.g()
+                    print >>sys.stderr,"Got",nsub*'sub'+'eras'
+                self.maxsuberas = nsub
 
         # figure out timeline boundaries
         self.cal = parsedatetime.Calendar()
@@ -128,7 +140,7 @@ class Timeline:
 
         # determine axis position so that axis + callouts
         # don't overlap with eras
-        y_axis = y_era + self.callout_size[1] - y_callouts
+        y_axis = self.maxsuberas*y_era + self.callout_size[1] - y_callouts
 
         # determine height so that eras, callouts, axis, and labels just fit
         height = y_axis + 4 * self.text_fudge[1]
@@ -136,6 +148,13 @@ class Timeline:
         # create eras and labels using axis height and overall height
         self.create_eras(y_era, y_axis, height)
         self.create_era_axis_labels()
+
+        # create suberas and labels using axis height and overall height
+        print >>sys.stderr,"Allowing for",self.maxsuberas,"sub-eras"
+        for i in range(1,self.maxsuberas+1):
+            print >>sys.stderr,"Setup for",i*'sub',"era"
+            self.create_suberas((i+1)*y_era, y_axis, height-(i+1)*y_era, nsub=i)
+            self.create_subera_axis_labels(nsub=i)
 
         self.draw_axis_labels()
 
@@ -148,10 +167,19 @@ class Timeline:
 
         # eras are not translated -> not in global group
         self.drawing.add(self.svg_groups['eras'])
+
+        # suberas are not translated -> not in global group
+        self.drawing.add(self.svg_groups['suberas'])
+        self.drawing.add(self.svg_groups['subsuberas'])
+        self.drawing.add(self.svg_groups['subsubsuberas'])
+
         self.drawing.add(global_group)
 
         # finally set the height on the drawing
         self.drawing['height'] = height
+        self.drawing['height'] = int(self.drawing['width']*3/4.)  # ignore height
+        print >>sys.stderr, "Height:",self.drawing['height']
+        print >>sys.stderr, "width:",self.drawing['width']
 
     def save(self, filename):
         self.drawing.saveas(filename)
@@ -227,6 +255,56 @@ class Timeline:
                 text_anchor='middle',
                 ))
 
+    def create_suberas(self, y_era, y_axis, height, nsub=1):
+        if nsub*'sub'+'eras' not in self.data:
+            print >>sys.stderr, "No sub-eras',nsub,', no problem"
+            return
+        print >>sys.stderr, "Got",nsub*'sub'+'eras'
+
+        # create eras
+        eras_data = self.data[nsub*'sub'+'eras']
+        markers = {}
+        for era in eras_data:
+
+            # extract era data
+            name = era[0]
+            t0 = self.datetime_from_string(era[1])
+            t1 = self.datetime_from_string(era[2])
+            fill = (era[3] if len(era) > 3 else Colors.gray)
+
+            # create boundary lines
+            percent_width0 = (t0 - self.date0).total_seconds() \
+                / self.total_secs
+            percent_width1 = (t1 - self.date0).total_seconds() \
+                / self.total_secs
+            x0 = int(percent_width0 * self.width + 0.5)
+            x1 = int(percent_width1 * self.width + 0.5)
+            rect = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.rect((x0, y_era), (x1 - x0,
+                                                                height)))
+            rect.fill(fill, None, 0.15)
+            line0 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x0, 0), (x0, y_axis),
+                                                       stroke=fill,
+                                                       stroke_width=0.5))
+            line1 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x1, 0), (x1, y_axis),
+                                                       stroke=fill,
+                                                       stroke_width=0.5))
+            line1.dasharray([5, 5])
+            line0.dasharray([5, 5])
+
+            # create horizontal arrows and text
+            self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x0, y_era), (x1, y_era),
+                                               stroke=fill,
+                                               stroke_width=0.75))
+            self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.text(
+                name,
+                insert=(0.5 * (x0 + x1), y_era - self.text_fudge[1]),
+                stroke='none',
+                fill=fill,
+                font_family='Helvetica',
+                font_size='6pt',
+                text_anchor='middle',
+                ))
+
     def create_main_axis(self):
 
         # draw main line
@@ -252,6 +330,21 @@ class Timeline:
         if 'eras' not in self.data:
             return
         eras_data = self.data['eras']
+        for era in eras_data:
+
+            # extract era data
+            t0 = self.datetime_from_string(era[1])
+            t1 = self.datetime_from_string(era[2])
+
+            # add marks on axis
+
+            self.add_axis_label(t0, str(t0), tick=False, fill=Colors.black)
+            self.add_axis_label(t1, str(t1), tick=False, fill=Colors.black)
+
+    def create_subera_axis_labels(self,nsub=1):
+        if nsub*'sub'+'eras' not in self.data:
+            return
+        eras_data = self.data[nsub*'sub'+'eras']
         for era in eras_data:
 
             # extract era data
