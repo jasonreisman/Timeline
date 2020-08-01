@@ -55,7 +55,6 @@ class Leveler():
         y = 0 - self.height - level * self.increment
 
         self.min_y = min(self.min_y, y)
-        print >>sys.stderr,"min y=",self.min_y
 
         self.previous_levels.append(level)
         self.x_positions.append(x)
@@ -71,7 +70,12 @@ class Timeline:
         s = ''
         with open(filename) as f:
             s = f.read()
-        self.data = json.loads(s)
+        # support comments if possible
+        try:
+            import commentjson
+            self.data = commentjson.loads(s)
+        except ImportError:
+            self.data = json.loads(s)
         assert 'width' in self.data, 'width property must be set'
         assert 'start' in self.data, 'start property must be set'
         assert 'end' in self.data, 'end property must be set'
@@ -88,12 +92,16 @@ class Timeline:
                            'subsubsuberas': self.drawing.g(),
                            'tick_labels': self.drawing.g(),
                            }
+        self.tick_angle = self.data.get('tick_angle','180')
+
+        self.font_family='Helvetica'
+        self.font_size='6'  # not critcial since everything rescales
+
         self.maxsuberas=0
         for nsub in range(1,6):
             if nsub*'sub'+'eras' in self.data:
                 if nsub*'sub'+'eras' not in self.svg_groups:
                     self.svg_groups[nsub*'sub'+'eras'] = self.drawing.g()
-                    print >>sys.stderr,"Got",nsub*'sub'+'eras'
                 self.maxsuberas = nsub
 
         # figure out timeline boundaries
@@ -152,7 +160,6 @@ class Timeline:
         # create suberas and labels using axis height and overall height
         print >>sys.stderr,"Allowing for",self.maxsuberas,"sub-eras"
         for i in range(1,self.maxsuberas+1):
-            print >>sys.stderr,"Setup for",i*'sub',"era"
             self.create_suberas((i+1)*y_era, y_axis, height-(i+1)*y_era, nsub=i)
             self.create_subera_axis_labels(nsub=i)
 
@@ -252,8 +259,10 @@ class Timeline:
                 insert=(0.5 * (x0 + x1), y_era - self.text_fudge[1]),
                 stroke='none',
                 fill=fill,
-                font_family='Helvetica',
-                font_size='6pt',
+                # font_family='Helvetica',
+                # font_size='6pt',
+                font_family=self.font_family,
+                font_size=self.font_size+'pt',
                 text_anchor='middle',
                 ))
 
@@ -401,7 +410,7 @@ class Timeline:
                                                             label)
 
             if writing_mode == 'tb':
-                transform = 'rotate(180, %i, 0)' % x
+                transform = 'rotate('+self.tick_angle+', %i, 0)' % x
                 y = 10
             else:
                 transform = 'translate(%i, 0)' % int(text_width / 2)
