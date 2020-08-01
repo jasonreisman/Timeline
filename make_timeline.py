@@ -177,9 +177,11 @@ class Timeline:
 
         # finally set the height on the drawing
         self.drawing['height'] = height
+        ""
         self.drawing['height'] = int(self.drawing['width']*3/4.)  # ignore height
         print >>sys.stderr, "Height:",self.drawing['height']
         print >>sys.stderr, "width:",self.drawing['width']
+        ""
 
     def save(self, filename):
         self.drawing.saveas(filename)
