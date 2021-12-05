@@ -7,8 +7,8 @@ import datetime
 import json
 import os.path
 import sys
-import tkFont
-import Tkinter
+import tkinter
+import tkinter.font as TkFont
 
 class Colors:
 	black = '#000000'
@@ -44,7 +44,7 @@ class Timeline:
 		self.tick_format = self.data.get('tick_format', None)
 		self.markers = {}
 		# initialize Tk so that font metrics will work
-		self.tk_root = Tkinter.Tk()
+		self.tk_root = tkinter.Tk()
 		self.fonts = {}
 		# max_label_height stores the max height of all axis labels
 		# and is used in the final height computation in build(self)

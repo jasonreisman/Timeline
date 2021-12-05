@@ -1,0 +1,4 @@
+# run `sudo apt install  python3-tk` if required
+parsedatetime
+svgwrite
+tk-tools
