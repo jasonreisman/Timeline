@@ -1,6 +1,15 @@
 # Timeline
 A tool for creating SVG timelines from JSON.  
 
+### Prerequisites
+
+Install tkinter and required packages using:
+
+```shell
+$ sudo apt install  python3-tk
+$ sudo apt install -r requirements.txt
+```
+
 ### Example
 
 You will be able to create timelines that look like this:
