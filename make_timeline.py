@@ -232,7 +232,7 @@ class Timeline:
 		if key in self.fonts:
 			font = self.fonts[key]
 		else:
-			font = tkFont.Font(family=family, size=size)
+			font = TkFont.Font(family=family, size=size)
 			self.fonts[key] = font
 		assert font is not None
 		w, h = (font.measure(text), font.metrics("linespace"))
