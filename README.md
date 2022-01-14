@@ -20,7 +20,6 @@ You will be able to create timelines that look like this:
 
 ![simple timeline example](http://jasonreisman.github.io/timeline/simple_timeline.png)
 
-![simple timeline example](https://github.com/gdudek/Timeline/blob/master/examples/sub-sub-era.png?raw=true)
 
 from JSON that looks like this:
 
@@ -49,6 +48,8 @@ from JSON that looks like this:
 	]
 }
 ```
+
+
 
 ### Data Format
 The input file is a JSON document that describes the start and end points of the timeline, tickmarks along the main axis, as well as callouts to specifc dates/times, and eras which visually mark areas along the axis.  Many of the fields are dates, which can be described in several common date formats (e.g., "3/14/15", "Nov 11, 2011", etc.) and may optionally also include a time of day (e.g. "3/14/15 9:26am").  (Date/time parsing is handled by the Python package [`parsedatetime`](https://pypi.python.org/pypi/parsedatetime/), which parses many formats.)
@@ -92,6 +93,26 @@ or, with a custom era color:
 ```JSON
 ["Summer 2015", "6/21/15 12am", "9/20/15 11:59pm", "Orange"]
 ```
+
+With finer grained eras within eras we can do this:
+
+```JSON
+{
+	"suberas" : [
+		["Summer", "June 1, 2021", "Sep 21, 2021", "#ADAFA5"]
+	],
+	"subsuberas" : [
+		["Winter", "Dec 1 2020", "March 2021", "#1DAFA5"],
+		["Winter", "Dec 1 2021", "March 2022", "#1DAFA5"],
+		["Holiday", "Aug 1 2021", "Aug 15 2021", "#FDAFA5"]
+	],
+    "subsubsuberas" : [
+        ["Cold", "Dec 26 2021", "Jan 15 2022", "#000000"]
+    ]
+}
+```
+
+![simple timeline example](https://github.com/gdudek/Timeline/blob/master/examples/sub-sub-era.png?raw=true)
 
 ### Usage
 ```./make_timeline.py in.json > out.svg```
