@@ -27,7 +27,7 @@ class Colors:
 
 class Leveler():
 
-    def __init__(self, width=10, height=15, increment=10, spacing_x=3):
+    def __init__(self, width=10, height=15, increment=20, spacing_x=3):  # MAGIC NUMBERS (not used)
 
         # static
         self.width = width
@@ -74,6 +74,8 @@ class Timeline:
         try:
             import commentjson
             self.data = commentjson.loads(s)
+            # except commentjson.JSONLibraryException(exc):
+
         except ImportError:
             self.data = json.loads(s)
         assert 'width' in self.data, 'width property must be set'
@@ -93,16 +95,20 @@ class Timeline:
                            'tick_labels': self.drawing.g(),
                            }
         self.tick_angle = self.data.get('tick_angle','180')
+        
+        self.vlines = self.data.get('vlines',0)
 
         self.font_family='Helvetica'
-        self.font_size='6'  # not critcial since everything rescales
+        self.font_size = '6'  # not critcial since everything rescales
 
         self.maxsuberas=0
         for nsub in range(1,6):
+            print >>sys.stderr, "Supporting:",nsub*'sub'+'eras'
             if nsub*'sub'+'eras' in self.data:
                 if nsub*'sub'+'eras' not in self.svg_groups:
                     self.svg_groups[nsub*'sub'+'eras'] = self.drawing.g()
                 self.maxsuberas = nsub
+        print >>sys.stderr, "Using self.maxsuberas =",self.maxsuberas
 
         # figure out timeline boundaries
         self.cal = parsedatetime.Calendar()
@@ -116,8 +122,8 @@ class Timeline:
         self.total_secs = (self.date1 - self.date0).total_seconds()
 
         # set up some params
-        self.callout_size = (10, 15, 10)  # width, height, increment
-        self.text_fudge = (3, 1.5)
+        self.callout_size = (10, 15, 30)  # width, height, increment, MAGIC NUMBERS
+        self.text_fudge = (3, 1.5)  # MAGIC
         self.tick_format = self.data.get('tick_format', None)
         self.markers = {}
         self.ticks = {}
@@ -139,7 +145,7 @@ class Timeline:
 
         # MAGIC NUMBER: y_era
         # draw era label and markers at this height
-        y_era = 10
+        y_era = 20
 
         # create main axis and callouts,
         # keeping track of how high the callouts are
@@ -160,7 +166,8 @@ class Timeline:
         # create suberas and labels using axis height and overall height
         print >>sys.stderr,"Allowing for",self.maxsuberas,"sub-eras"
         for i in range(1,self.maxsuberas+1):
-            self.create_suberas((i+1)*y_era, y_axis, height-(i+1)*y_era, nsub=i)
+            print >>sys.stderr,i," create_suberas(",(i+1)*y_era, y_axis, height-(i+1)*y_era, i,")"
+            self.create_suberas((i+1)*y_era, y_axis, height-(i+1)*y_era, nsub=i)  # height gets smaller for sub eras
             self.create_subera_axis_labels(nsub=i)
 
         self.draw_axis_labels()
@@ -217,6 +224,8 @@ class Timeline:
             return ts.strftime(fmt)
 
     def create_eras(self, y_era, y_axis, height):
+        """  y_era is the top of the era
+        """
         if 'eras' not in self.data:
             return
 
@@ -240,6 +249,7 @@ class Timeline:
             x1 = int(percent_width1 * self.width + 0.5)
             rect = self.svg_groups['eras'].add(self.drawing.rect((x0, 0), (x1 - x0,
                                                                 height)))
+                                                                            
             rect.fill(fill, None, 0.15)
             line0 = self.svg_groups['eras'].add(self.drawing.line((x0, 0), (x0, y_axis),
                                                        stroke=fill,
@@ -247,6 +257,11 @@ class Timeline:
             line1 = self.svg_groups['eras'].add(self.drawing.line((x1, 0), (x1, y_axis),
                                                        stroke=fill,
                                                        stroke_width=0.5))
+            
+            
+            print >>sys.stderr, "%9s"%name," SubEra:", (x0, y_era), (x1, y_era)
+
+
             line1.dasharray([5, 5])
             line0.dasharray([5, 5])
 
@@ -267,6 +282,8 @@ class Timeline:
                 ))
 
     def create_suberas(self, y_era, y_axis, height, nsub=1):
+        """  y_era is the top of the era
+        """
         if nsub*'sub'+'eras' not in self.data:
             print >>sys.stderr, "No sub-eras',nsub,', no problem"
             return
@@ -277,7 +294,7 @@ class Timeline:
         markers = {}
         for era in eras_data:
 
-            # extract era data
+            # extract era data: name, time start & end, color
             name = era[0]
             t0 = self.datetime_from_string(era[1])
             t1 = self.datetime_from_string(era[2])
@@ -293,15 +310,19 @@ class Timeline:
             rect = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.rect((x0, y_era), (x1 - x0,
                                                                 height)))
             rect.fill(fill, None, 0.15)
-            line0 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x0, 0), (x0, y_axis),
+            if self.vlines:  # allow vertical lines up from subera boundries
+                line0 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x0, 0), (x0, y_axis),
                                                        stroke=fill,
                                                        stroke_width=0.5))
-            line1 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x1, 0), (x1, y_axis),
+                line1 = self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x1, 0), (x1, y_axis),
                                                        stroke=fill,
                                                        stroke_width=0.5))
-            line1.dasharray([5, 5])
-            line0.dasharray([5, 5])
+                line1.dasharray([5, 5])
+                line0.dasharray([5, 5])
+      
 
+            
+            print >>sys.stderr, "%9s"%name,nsub," SubEra:", (x0, y_era), (x1, y_era)
             # create horizontal arrows and text
             self.svg_groups[nsub*'sub'+'eras'].add(self.drawing.line((x0, y_era), (x1, y_era),
                                                stroke=fill,
@@ -505,7 +526,7 @@ class Timeline:
     def get_text_metrics(self, family, size, text):
         if not self.use_tkinter:
             # NOTE: change it not to use hard-coded value
-            return (len(text)*10, 10)
+            return (len(text)*10, 10)  # MAGIC NUMBER
         font = None
         key = (family, size)
         if key in self.fonts:
