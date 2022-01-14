@@ -1,0 +1,34 @@
+{
+    // this file has comments.
+    // you must have commentjson installed (pip install commentjson)
+	"width" : 600,
+	"height" : 2600,
+	"start" : "Sep 1 2020",
+	"end" : "July 31 2022",	
+	"num_ticks" : 3,
+	"tick_format" : "%b %Y",  // "%b %d, %Y"
+	// "tick_orientation" : "lr",   // tb, lr, rl
+	"tick_angle" : "220",
+    //"vlines": 0,
+	"callouts" : [
+		["GD birthday party", "Oct 11, 2011"],
+		["Event", "Feb 2021", "#DD0000"],
+		["ICRA2021", "May 20 2021" ],
+		["Delta", "April 4 2021" ]
+	] ,
+	"eras" : [
+		["Omicron", "Nov 1, 2021", "March 21, 2022", "#AD3F85"]
+	],
+	"suberas" : [
+		["Summer", "June 1, 2021", "Sep 21, 2021", "#ADAFA5"]
+	],
+	"subsuberas" : [
+		["Winter", "Dec 1 2020", "March 2021", "#1DAFA5"],
+		["Winter", "Dec 1 2021", "March 2022", "#1DAFA5"],
+		["Holiday", "Aug 1 2021", "Aug 15 2021", "#FDAFA5"]
+	],
+
+    "subsubsuberas" : [
+        ["Cold", "Dec 26 2021", "Jan 15 2022", "#000000"]
+    ]
+}
