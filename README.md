@@ -20,6 +20,8 @@ You will be able to create timelines that look like this:
 
 ![simple timeline example](http://jasonreisman.github.io/timeline/simple_timeline.png)
 
+![simple timeline example](https://github.com/gdudek/Timeline/blob/master/examples/sub-sub-era.png?raw=true)
+
 from JSON that looks like this:
 
 ```JSON
