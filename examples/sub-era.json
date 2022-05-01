@@ -1,0 +1,24 @@
+{
+	"width" : 750,
+	"start" : "Oct 1 2018",
+	"end" : "Dec 31 2021",	
+	"num_ticks" : 14,
+	"tick_format" : "%b %d, %Y - %I:%M%p",
+	"callouts" : [
+		["GD 60th birthday party", "Oct 11, 2018"],				
+		["Event", "Feb 2020", "#DD0000"],
+		["Natasha returns to Montreal", "Aug 1 2019"],
+		["S+M", "Jan 22 2020", "#C0A0FF"],
+		["IR2", "June 22 2020", "#C0A0FF"],
+		["ICRA2019", "May 20 2019" ]
+	] ,
+	"eras" : [
+		["Samsung", "Jan 21, 2019", "Jan 21, 2021", "#AD3F85"]
+	],
+	"suberas" : [
+		["COVID-19", "Feb 1, 2019", "Feb 21, 2022", "#ADAFA5"]
+	],
+	"subsuberas" : [
+		["NCRN", "July 1 2019", "July 1 2024", "#DDAFA5"]
+	]
+}

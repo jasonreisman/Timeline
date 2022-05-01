@@ -1,5 +1,18 @@
 # Timeline
-A tool for creating SVG timelines from JSON.  
+A tool for creating SVG timelines from JSON.
+
+### Requirements
+
+Standard pythons need to additionally install these two packages:
+
+* parsedatetime
+* svgwrite
+
+via `pip install`.
+
+If you're running python3 on Ubuntu you might also need to install tk:
+
+`sudo apt-get install python3-tk`
 
 ### Example
 
@@ -7,20 +20,23 @@ You will be able to create timelines that look like this:
 
 ![simple timeline example](http://jasonreisman.github.io/timeline/simple_timeline.png)
 
+
 from JSON that looks like this:
 
 ```JSON
 {
 	"width" : 750,
 	"start" : "Oct 8 2015",
-	"end" : "Oct 15 2015",	
+	"end" : "Oct 15 2015",
 	"num_ticks" : 14,
 	"tick_format" : "%b %d, %Y - %I:%M%p",
+	"tick_orientation": "tb",
+	"date_parsing_format" : "%b %d, %Y %I%p",
 	"callouts" : [
-		["ABC easy as 123", "Oct 14, 2015 3pm"],		
+		["ABC easy as 123", "Oct 14, 2015 3pm"],
 		["Midnight Event A", "12am Oct 10, 2015", "#DD0000"],
-		["Noon Event A", "12pm Oct 10, 2015"],		
-		["5pm Event A", "5pm Oct 10, 2015"],				
+		["Noon Event A", "12pm Oct 10, 2015"],
+		["5pm Event A", "5pm Oct 10, 2015"],
 		["Something amazing happening", "Oct 11, 2015"],
 		["Awesome Event B", "Oct 12, 2015", "#DD0000"],
 		["C", "Oct 13, 2015"],
@@ -33,21 +49,25 @@ from JSON that looks like this:
 }
 ```
 
+
+
 ### Data Format
 The input file is a JSON document that describes the start and end points of the timeline, tickmarks along the main axis, as well as callouts to specifc dates/times, and eras which visually mark areas along the axis.  Many of the fields are dates, which can be described in several common date formats (e.g., "3/14/15", "Nov 11, 2011", etc.) and may optionally also include a time of day (e.g. "3/14/15 9:26am").  (Date/time parsing is handled by the Python package [`parsedatetime`](https://pypi.python.org/pypi/parsedatetime/), which parses many formats.)
 
 #### Required Fields
 
-The only required fields are `width`, `start`, and `end`.  All other fields are optional.  
+The only required fields are `width`, `start`, and `end`.  All other fields are optional.
 
 * `width` describes the width, in pixels, of the output SVG document.  The height will be determined automatically.
-* `start` is the date/time of the leftmost date/time on the axis.
-* `end` is the date/time of the rightmost date/time on the axis.
+* `start` is the date/time of the leftmost date/time on the axis. Negative values for year cannot be parsed.
+* `end` is the date/time of the rightmost date/time on the axis. Negative values for year cannot be parsed.
 
 #### Optional Fields
 
-* `num_ticks` contols the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for those at the `start` and `end` dates.
-* `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior).
+* `num_ticks` controls the number of tickmarks along the axis between the `start` and `end` date/times (inclusive).  If this field is not present, no tickmarks will be generated except for those at the `start` and `end` dates.
+* `tick_format` describes the string format of the tickmarks along the axis.  It follows the [Python datetime formatting conventions](https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior). Warning: Dates before 1900 can only use: %m, %M, %H, %d, %Y, %S and %YY (year with leading 0).
+* `tick_orientation` controls the orientation of the tick labels. `tb`: top to bottom, `lr`: left to right
+* `date_parsing_format` defines the date format of callouts and eras.
 
 #### Callouts
 
@@ -63,7 +83,7 @@ or, with a custom callout color:
 ```
 #### Eras
 
-Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Summer"), while the second and third values are the start and end date/times of the era, respectively (e.g., "6/21/15 12am", and "9/20/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias. 
+Eras are described in the `eras` list.  Like the callout list, each entry in the eras list is itself a list with either three or four values.  The first three are required while the fourth is option; all values are strings.  The first value is a text description of the era (e.g., "Summer"), while the second and third values are the start and end date/times of the era, respectively (e.g., "6/21/15 12am", and "9/20/15 11:59pm").  The optional fourth value can specify a color for the era, either a color hexcode starting with a # or a SVG color alias.
 
 Example:
 ```JSON
@@ -74,8 +94,25 @@ or, with a custom era color:
 ["Summer 2015", "6/21/15 12am", "9/20/15 11:59pm", "Orange"]
 ```
 
-### Prerequisites
-You must have a python 2.7 installation and install the Python packages `parsedatetime` and `svgwrite`.
+With finer grained eras within eras we can do this:
+
+```JSON
+{
+	"suberas" : [
+		["Summer", "June 1, 2021", "Sep 21, 2021", "#ADAFA5"]
+	],
+	"subsuberas" : [
+		["Winter", "Dec 1 2020", "March 2021", "#1DAFA5"],
+		["Winter", "Dec 1 2021", "March 2022", "#1DAFA5"],
+		["Holiday", "Aug 1 2021", "Aug 15 2021", "#FDAFA5"]
+	],
+    "subsubsuberas" : [
+        ["Cold", "Dec 26 2021", "Jan 15 2022", "#000000"]
+    ]
+}
+```
+
+![simple timeline example](https://github.com/gdudek/Timeline/blob/master/examples/sub-sub-era.png?raw=true)
 
 ### Usage
 ```./make_timeline.py in.json > out.svg```
